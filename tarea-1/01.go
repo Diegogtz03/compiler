@@ -100,7 +100,7 @@ func main() {
 	fmt.Println("POP: Should be 2 is:", s.pop())
 	fmt.Println("POP: Should be 1 is:", s.pop())
 
-	fmt.Println("IsEmpty: Should be true is: ", s.isEmpty())
+	fmt.Println("IsEmpty: Should be true is:", s.isEmpty())
 
 	// Queue Test Cases
 	fmt.Println("\n--------- QUEUE ---------")
