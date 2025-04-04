@@ -76,6 +76,7 @@ func (q *Queue) isEmpty() bool {
 }
 
 // ----------------- Dictionary -----------------
+// Uses already implemented library
 
 func main() {
 	// Stack Test Cases
@@ -83,36 +84,59 @@ func main() {
 	s := Stack{}
 
 	s.push(1)
+	fmt.Println("TOP: Should be 1 is:", s.top())
+
 	s.push(2)
+	fmt.Println("TOP: Should be 2 is:", s.top())
+
 	s.push(3)
+	fmt.Println("TOP: Should be 3 is:", s.top())
 
-	fmt.Println(s.top())
-	fmt.Println(s.pop())
-	fmt.Println(s.top())
+	fmt.Println("POP: Should be 3 is:", s.pop())
+	fmt.Println("TOP: Should be 2 is:", s.top())
 
-	fmt.Println(s.isEmpty())
+	fmt.Println("IsEmpty: Should be false is:", s.isEmpty())
 
-	fmt.Println(s.pop())
-	fmt.Println(s.pop())
+	fmt.Println("POP: Should be 2 is:", s.pop())
+	fmt.Println("POP: Should be 1 is:", s.pop())
 
-	fmt.Println(s.isEmpty())
+	fmt.Println("IsEmpty: Should be true is: ", s.isEmpty())
 
 	// Queue Test Cases
 	fmt.Println("--------- QUEUE ---------")
 	q := Queue{}
 
 	q.enqueue(1)
+	fmt.Println("HEAD: Should be 1 is:", q.head())
+	fmt.Println("TAIL: Should be 1 is:", q.tail())
+
 	q.enqueue(2)
+	fmt.Println("HEAD: Should be 1 is:", q.head())
+	fmt.Println("TAIL: Should be 2 is:", q.tail())
+
 	q.enqueue(3)
+	fmt.Println("HEAD: Should be 1 is:", q.head())
+	fmt.Println("TAIL: Should be 3 is:", q.tail())
 
-	fmt.Println(q.dequeue())
-	fmt.Println(q.dequeue())
+	fmt.Println("DEQUEUE: Should be 1 is:", q.dequeue())
+	fmt.Println("HEAD: Should be 2 is:", q.head())
 
-	fmt.Println(q.tail())
+	fmt.Println("DEQUEUE: Should be 2 is:", q.dequeue())
+	fmt.Println("HEAD: Should be 3 is:", q.head())
+	fmt.Println("TAIL: Should be 3 is:", q.tail())
 
 	q.enqueue(4)
 
-	fmt.Println(q.tail())
+	fmt.Println("TAIL: Should be 4 is:", q.tail())
+
+	fmt.Println("IsEmpty: Should be false is:", q.isEmpty())
+
+	q.dequeue()
+	q.dequeue()
+
+	fmt.Println("Length: Should be 0 is:", len(q.items))
+
+	fmt.Println("IsEmpty: Should be true is:", q.isEmpty())
 
 	// Dictionary Test Cases
 	fmt.Println("--------- DICTIONARY ---------")
@@ -121,10 +145,20 @@ func main() {
 
 	d["Diego"] = 22
 	d["Roberto"] = 21
+
+	fmt.Println("Should be 21 is:", d["Roberto"])
+	fmt.Println("Should be 2 is:", len(d))
+
+	d["Roberto"] = 32
+	fmt.Println("Should be 32 is:", d["Roberto"])
+
+	delete(d, "Roberto")
+	fmt.Println("Should be 1 is:", len(d))
+
 	d["Jose"] = 20
 
-	fmt.Println(d["Roberto"])
-	fmt.Println(len(d))
-	delete(d, "Roberto")
-	fmt.Println(len(d))
+	fmt.Println("Should be 20 is:", d["Jose"])
+	fmt.Println("Should be 2 is:", len(d))
+
+	fmt.Println("Should be 22 is:", d["Diego"])
 }
