@@ -103,7 +103,7 @@ func main() {
 	fmt.Println("IsEmpty: Should be true is: ", s.isEmpty())
 
 	// Queue Test Cases
-	fmt.Println("--------- QUEUE ---------")
+	fmt.Println("\n--------- QUEUE ---------")
 	q := Queue{}
 
 	q.enqueue(1)
@@ -139,26 +139,32 @@ func main() {
 	fmt.Println("IsEmpty: Should be true is:", q.isEmpty())
 
 	// Dictionary Test Cases
-	fmt.Println("--------- DICTIONARY ---------")
+	fmt.Println("\n--------- DICTIONARY ---------")
 
 	d := make(map[string]int)
 
 	d["Diego"] = 22
 	d["Roberto"] = 21
 
-	fmt.Println("Should be 21 is:", d["Roberto"])
-	fmt.Println("Should be 2 is:", len(d))
+	fmt.Println("ACCESS: Should be 21 is:", d["Roberto"])
+	fmt.Println("LENGTH: Should be 2 is:", len(d))
 
 	d["Roberto"] = 32
-	fmt.Println("Should be 32 is:", d["Roberto"])
+	fmt.Println("ACCESS: Should be 32 is:", d["Roberto"])
 
 	delete(d, "Roberto")
-	fmt.Println("Should be 1 is:", len(d))
+	fmt.Println("LENGTH: Should be 1 is:", len(d))
 
 	d["Jose"] = 20
 
-	fmt.Println("Should be 20 is:", d["Jose"])
-	fmt.Println("Should be 2 is:", len(d))
+	fmt.Println("ACCESS: Should be 20 is:", d["Jose"])
+	fmt.Println("LENGTH: Should be 2 is:", len(d))
 
-	fmt.Println("Should be 22 is:", d["Diego"])
+	fmt.Println("ACCESS: Should be 22 is:", d["Diego"])
+
+	delete(d, "Diego")
+	fmt.Println("LENGTH: Length: Should be 1 is:", len(d))
+
+	delete(d, "Jose")
+	fmt.Println("LENGTH: Should be 0 is:", len(d))
 }

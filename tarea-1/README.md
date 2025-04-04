@@ -50,3 +50,5 @@ tienen que ser clases, si el lenguaje de desarrollo no las soporta.
 10. Access "Jose" --> Should return 20
 11. Length --> Should be 2
 12. Access "Diego" --> Should be 22
+13. Delete "Diego --> Length should be 1
+14. Delete "Jose --> Length should be 0
