@@ -14,17 +14,18 @@ type Expr struct {
 
 func main() {
 	parser, err := participle.Build[Expr]()
+
 	if err != nil {
 		panic(err)
 	}
 
 	input := "3 + 4"
-	ast := &Expr{}
-	_, err = parser.ParseString("", input, ast)
+	expr, err := parser.ParseString("", input)
+
 	if err != nil {
 		panic(err)
 	}
 
-	result := ast.Left + ast.Right
-	fmt.Printf("%d %s %d = %d\n", ast.Left, ast.Op, ast.Right, result)
+	result := expr.Left + expr.Right
+	fmt.Printf("%d %s %d = %d\n", expr.Left, expr.Op, expr.Right, result)
 }

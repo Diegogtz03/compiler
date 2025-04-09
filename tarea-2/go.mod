@@ -1,4 +1,4 @@
-module compiler
+module suma
 
 go 1.24.1
 
