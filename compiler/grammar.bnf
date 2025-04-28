@@ -1,0 +1,121 @@
+/* Lexico */
+
+main_rw : "main";
+vo_id_rw : "vo_id";
+program_rw : "program";
+int_rw : "int";
+float_rw : "float";
+var_rw : "var";
+end_rw : "end";
+do_rw : "do";
+print_rw : "Print";
+while_rw : "while";
+if_rw : "if";
+else_rw : "else";
+
+/* Lexico - Constantes */
+
+_id : 'a'-'z' {'a'-'z'} { ('_' | 'A'-'Z') ('a'-'z' | 'A'-'Z' | '0'-'9') {'a'-'z' | 'A'-'Z' | '0'-'9'} } ;
+_int : '0'-'9' {'0'-'9'} ;
+_float : '0'-'9' {'0'-'9'} '.' '0'-'9' {'0'-'9'} ;
+_string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
+
+/* Lexico - Simbolos */
+
+curly_open : '{' ;
+curly_close : '}';
+less_than : '<';
+greater_than : '>';
+not_equal : "!=";
+mult : '*';
+div : '/';
+bracket_open : '[';
+bracket_close : ']';
+two_dots : ':';
+equal : '=';
+plus : '+';
+minus : '-';
+parenthesis_open : '(';
+parenthesis_close : ')';
+semicolon : ';';
+comma : ',';
+
+/* ------------------------ */
+/* Sintaxis */
+
+Programa : program_rw _id semicolon Vars Programa_PR main_rw Body end_rw
+  | program_rw _id semicolon Programa_PR main_rw Body end_rw;
+
+Programa_PR : Funcs Programa_PR
+  | empty ;
+
+Vars : var_rw _id Vars_PR two_dots Type semicolon Vars_PR_PR;
+
+Vars_PR : comma _id Vars_PR
+  | empty ;
+
+Vars_PR_PR : _id Vars_PR two_dots Type semicolon Vars_PR_PR
+  | empty ;
+
+Type : int_rw | float_rw ;
+
+Body : curly_open Body_PR curly_close;
+Body_PR : Statement Body_PR
+  | empty ;
+
+Statement : Assign 
+  | Condition
+  | Cycle
+  | F_call
+  | Print;
+
+Print : print_rw parenthesis_open Expr Print_PR parenthesis_close semicolon
+  | print_rw parenthesis_open _string Print_PR parenthesis_close semicolon;
+
+Print_PR : comma Expr Print_PR
+  | comma _string Print_PR
+  | empty ;
+
+Assign : _id equal Exp semicolon;
+
+Cycle : while_rw parenthesis_open Expr parenthesis_close do_rw Body semicolon;
+
+Condition : if_rw parenthesis_open Expr parenthesis_close Body semicolon
+  | if_rw parenthesis_open Expr parenthesis_close Body ELSE Body semicolon;
+
+Cte : _int | _float;
+
+Expr : Exp
+  | Exp greater_than Exp
+  | Exp less_than Exp
+  | Exp not_equal Exp;
+
+Exp : Term
+  | Term plus Exp
+  | Term minus Exp;
+
+Term : Fact
+  | Fact mult Term
+  | Fact div Term;
+
+Fact : parenthesis_open Expr parenthesis_close
+  | plus _id
+  | minus _id
+  | Cte
+  | _id
+  | plus Cte
+  | minus Cte;
+
+Funcs : vo_id_rw _id parenthesis_open parenthesis_close bracket_open Body bracket_close semicolon
+  | vo_id_rw _id parenthesis_open parenthesis_close bracket_open Vars Body bracket_close semicolon
+  | vo_id_rw _id parenthesis_open _id two_dots Type Funcs_PR parenthesis_close bracket_open Body bracket_close semicolon
+  | vo_id_rw _id parenthesis_open _id two_dots Type Funcs_PR parenthesis_close bracket_open Vars Body bracket_close semicolon;
+
+Funcs_PR : comma _id two_dots Type Funcs_PR
+  | empty ;
+
+F_call : _id parenthesis_open parenthesis_close semicolon
+  | _id parenthesis_open Expr F_call_PR parenthesis_close semicolon;
+
+F_call_PR : comma Expr F_call_PR 
+  | empty ;
