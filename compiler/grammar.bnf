@@ -1,65 +1,31 @@
-/* Lexico */
-
-main_rw : "main";
-vo_id_rw : "vo_id";
-program_rw : "program";
-int_rw : "int";
-float_rw : "float";
-var_rw : "var";
-end_rw : "end";
-do_rw : "do";
-print_rw : "Print";
-while_rw : "while";
-if_rw : "if";
-else_rw : "else";
-
 /* Lexico - Constantes */
 
-_id : 'a'-'z' {'a'-'z'} { ('_' | 'A'-'Z') ('a'-'z' | 'A'-'Z' | '0'-'9') {'a'-'z' | 'A'-'Z' | '0'-'9'} } ;
-_int : '0'-'9' {'0'-'9'} ;
-_float : '0'-'9' {'0'-'9'} '.' '0'-'9' {'0'-'9'} ;
-_string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
-
-/* Lexico - Simbolos */
-
-curly_open : '{' ;
-curly_close : '}';
-less_than : '<';
-greater_than : '>';
-not_equal : "!=";
-mult : '*';
-div : '/';
-bracket_open : '[';
-bracket_close : ']';
-two_dots : ':';
-equal : '=';
-plus : '+';
-minus : '-';
-parenthesis_open : '(';
-parenthesis_close : ')';
-semicolon : ';';
-comma : ',';
+id : 'a'-'z' {'a'-'z'} { ('_' | 'A'-'Z') ('a'-'z' | 'A'-'Z' | '0'-'9') {'a'-'z' | 'A'-'Z' | '0'-'9'} } ;
+myint : '0'-'9' {'0'-'9'} ;
+myfloat : '0'-'9' {'0'-'9'} '.' '0'-'9' {'0'-'9'} ;
+string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
+!whitespace : ' ' | '\t' | '\n' | '\r' ;
 
 /* ------------------------ */
 /* Sintaxis */
 
-Programa : program_rw _id semicolon Vars Programa_PR main_rw Body end_rw
-  | program_rw _id semicolon Programa_PR main_rw Body end_rw;
+Programa : "program" id ";" Vars Programa_PR "main" Body "end"
+  | "program" id ";" Programa_PR "main" Body "end";
 
 Programa_PR : Funcs Programa_PR
   | empty ;
 
-Vars : var_rw _id Vars_PR two_dots Type semicolon Vars_PR_PR;
+Vars : "var" id Vars_PR ":" Type ";" Vars_PR_PR;
 
-Vars_PR : comma _id Vars_PR
+Vars_PR : "," id Vars_PR
   | empty ;
 
-Vars_PR_PR : _id Vars_PR two_dots Type semicolon Vars_PR_PR
+Vars_PR_PR : id Vars_PR ":" Type ";" Vars_PR_PR
   | empty ;
 
-Type : int_rw | float_rw ;
+Type : "int" | "float" ;
 
-Body : curly_open Body_PR curly_close;
+Body : "{" Body_PR "}";
 Body_PR : Statement Body_PR
   | empty ;
 
@@ -69,53 +35,53 @@ Statement : Assign
   | F_call
   | Print;
 
-Print : print_rw parenthesis_open Expr Print_PR parenthesis_close semicolon
-  | print_rw parenthesis_open _string Print_PR parenthesis_close semicolon;
+Print : "print" "(" Expr Print_PR ")" ";"
+  | "print" "(" string Print_PR ")" ";";
 
-Print_PR : comma Expr Print_PR
-  | comma _string Print_PR
+Print_PR : "," Expr Print_PR
+  | "," string Print_PR
   | empty ;
 
-Assign : _id equal Exp semicolon;
+Assign : id "=" Exp ";";
 
-Cycle : while_rw parenthesis_open Expr parenthesis_close do_rw Body semicolon;
+Cycle : "while" "(" Expr ")" "do" Body ";";
 
-Condition : if_rw parenthesis_open Expr parenthesis_close Body semicolon
-  | if_rw parenthesis_open Expr parenthesis_close Body ELSE Body semicolon;
+Condition : "if" "(" Expr ")" Body ";"
+  | "if" "(" Expr ")" Body "else" Body ";";
 
-Cte : _int | _float;
+Cte : myint | myfloat;
 
 Expr : Exp
-  | Exp greater_than Exp
-  | Exp less_than Exp
-  | Exp not_equal Exp;
+  | Exp ">" Exp
+  | Exp "<" Exp
+  | Exp "!=" Exp;
 
 Exp : Term
-  | Term plus Exp
-  | Term minus Exp;
+  | Term "+" Exp
+  | Term "-" Exp;
 
 Term : Fact
-  | Fact mult Term
-  | Fact div Term;
+  | Fact "*" Term
+  | Fact "/" Term;
 
-Fact : parenthesis_open Expr parenthesis_close
-  | plus _id
-  | minus _id
+Fact : "(" Expr ")"
+  | "+" id
+  | "-" id
   | Cte
-  | _id
-  | plus Cte
-  | minus Cte;
+  | id
+  | "+" Cte
+  | "-" Cte;
 
-Funcs : vo_id_rw _id parenthesis_open parenthesis_close bracket_open Body bracket_close semicolon
-  | vo_id_rw _id parenthesis_open parenthesis_close bracket_open Vars Body bracket_close semicolon
-  | vo_id_rw _id parenthesis_open _id two_dots Type Funcs_PR parenthesis_close bracket_open Body bracket_close semicolon
-  | vo_id_rw _id parenthesis_open _id two_dots Type Funcs_PR parenthesis_close bracket_open Vars Body bracket_close semicolon;
+Funcs : "void" id "(" ")" "[" Body "]" ";"
+  | "void" id "(" ")" "[" Vars Body "]" ";"
+  | "void" id "(" id ":" Type Funcs_PR ")" "[" Body "]" ";"
+  | "void" id "(" id ":" Type Funcs_PR ")" "[" Vars Body "]" ";";
 
-Funcs_PR : comma _id two_dots Type Funcs_PR
+Funcs_PR : "," id ":" Type Funcs_PR
   | empty ;
 
-F_call : _id parenthesis_open parenthesis_close semicolon
-  | _id parenthesis_open Expr F_call_PR parenthesis_close semicolon;
+F_call : id "(" ")" ";"
+  | id "(" Expr F_call_PR ")" ";";
 
-F_call_PR : comma Expr F_call_PR 
+F_call_PR : "," Expr F_call_PR 
   | empty ;
