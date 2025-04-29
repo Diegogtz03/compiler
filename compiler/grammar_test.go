@@ -7,36 +7,129 @@ import (
 	"compiler/parser"
 )
 
-func TestParseSample(t *testing.T) {
-	srcs := []string{
+func TestTheParserCorrectlyParsesACorrectSample(t *testing.T) {
+	src :=
 		`program demo;
 
 		var  x, y, z : int;
 
-		main { 
-			print(1 + 2); 
+		main {
+			print(1 + 2);
+		}
+		end`
+
+	l := lexer.NewLexer([]byte(src))
+	p := parser.NewParser()
+
+	tree, perr := p.Parse(l)
+
+	if perr != nil {
+		t.Fatalf("parse failed: %v", perr)
+	}
+
+	t.Logf("parse OK %#v", tree)
+}
+
+func TestTheParserCorrectlyParsesAnotherCorrectSample(t *testing.T) {
+	src :=
+		`program myDemoProgram;
+
+		var  x, y, z : int; p, e, o : float;
+
+		void aFunction(a : int, b : float) [
+			var c : int;
+
+			{
+				d = a + b;
+				print(d);
+			}
+		];
+
+		main {
+			aFunction(1, 2.0);
+
+			while (x < 10) do {
+				print(x);
+				x = x + 1;
+			};
 		}
 
-		end`,
+		end`
+
+	l := lexer.NewLexer([]byte(src))
+	p := parser.NewParser()
+
+	tree, perr := p.Parse(l)
+
+	if perr != nil {
+		t.Fatalf("parse failed: %v", perr)
+	}
+
+	t.Logf("parse OK %#v", tree)
+}
+
+func TestTheParserDetectsMissingEnd(t *testing.T) {
+	src :=
 		`program demo;
 
 		var  x, y, z : int;
 
-		main { 
-			print(1 + 2); 
-		}`,
+		main {
+			print(1 + 2);
+		}`
+
+	l := lexer.NewLexer([]byte(src))
+	p := parser.NewParser()
+
+	tree, perr := p.Parse(l)
+
+	if perr != nil {
+		t.Fatalf("parse failed: %v", perr)
 	}
 
-	for _, src := range srcs {
-		l := lexer.NewLexer([]byte(src))
-		p := parser.NewParser()
+	t.Logf("parse OK %#v", tree)
+}
 
-		tree, perr := p.Parse(l)
+func TestTheParserDetectsMissingSemicolon(t *testing.T) {
+	src :=
+		`program demo
 
-		if perr != nil {
-			t.Fatalf("parse failed: %v", perr)
-		}
+		var  x, y, z : int;
 
-		t.Logf("Parse OK, top-level attribute = %#v", tree)
+		main {
+			print(1 + 2);
+		}`
+
+	l := lexer.NewLexer([]byte(src))
+	p := parser.NewParser()
+
+	tree, perr := p.Parse(l)
+
+	if perr != nil {
+		t.Fatalf("parse failed: %v", perr)
 	}
+
+	t.Logf("parse OK %#v", tree)
+}
+
+func TestTheParserDetectsWrongTokens(t *testing.T) {
+	src :=
+		`program demo;
+
+		var  x, y, z : string;
+
+		main {
+			print(1 + 2);
+		}`
+
+	l := lexer.NewLexer([]byte(src))
+	p := parser.NewParser()
+
+	tree, perr := p.Parse(l)
+
+	if perr != nil {
+		t.Fatalf("parse failed: %v", perr)
+	}
+
+	t.Logf("parse OK %#v", tree)
 }
