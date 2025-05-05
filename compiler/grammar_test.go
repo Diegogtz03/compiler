@@ -3,8 +3,10 @@ package main
 import (
 	"testing"
 
+	"compiler/ast"
 	"compiler/lexer"
 	"compiler/parser"
+	"fmt"
 )
 
 func TestTheParserCorrectlyParsesACorrectSample(t *testing.T) {
@@ -45,6 +47,15 @@ func TestTheParserCorrectlyParsesAnotherCorrectSample(t *testing.T) {
 			}
 		];
 
+		void anotherFunction(a : int, b : float) [
+			var c : int;
+
+			{
+				d = a + b;
+				print(d);
+			}
+		];
+
 		main {
 			aFunction(1, 2.0);
 
@@ -66,6 +77,8 @@ func TestTheParserCorrectlyParsesAnotherCorrectSample(t *testing.T) {
 	}
 
 	t.Logf("parse OK %#v", tree)
+
+	fmt.Println(tree.(*ast.Program).Vars[0].Type)
 }
 
 func TestTheParserDetectsMissingEnd(t *testing.T) {
