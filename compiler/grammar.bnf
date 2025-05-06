@@ -1,4 +1,4 @@
-/* Lexico - Palabras reservadas */
+/* ----------------- Lexico - Palabras reservadas ----------------- */
 
 program : 'p' 'r' 'o' 'g' 'r' 'a' 'm';
 main : 'm' 'a' 'i' 'n';
@@ -13,7 +13,7 @@ print: 'p' 'r' 'i' 'n' 't';
 if: 'i' 'f';
 else: 'e' 'l' 's' 'e';
 
-/* Lexico - Simbolos */
+/* ----------------- Lexico - Simbolos ----------------- */
 
 semicolon: ';';
 two_dots: ':';
@@ -33,7 +33,7 @@ not_equal: '!' '=';
 mult: '*';
 div: '/';
 
-/* Lexico - Constantes */
+/* ----------------- Lexico - Constantes ----------------- */
 
 id : 'a'-'z' {'a'-'z'} { ('_' | 'A'-'Z') ('a'-'z' | 'A'-'Z' | '0'-'9') {'a'-'z' | 'A'-'Z' | '0'-'9'} } ;
 myint : '0'-'9' {'0'-'9'} ;
@@ -42,33 +42,34 @@ string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
 
 !whitespace : ' ' | '\t' | '\n' | '\r' ;
 
-/* ------------------------ */
-/* Sintaxis */
 
-<< import (
-	"compiler/ast"
-	"compiler/token"
-) >>
+/* ----------------- Sintaxis ----------------- */
+
+<< import "compiler/ast" >> 
 
 Start : Programa ;
 
-Programa : program id semicolon Vars Programa_PR main Body end << ast.CreateProgram($1, $3, $4) >>
-  | program id semicolon Programa_PR main Body end << ast.CreateProgram($1, nil, $3) >> ;
+Program_Create : id << ast.CreateFuntion($0, true) >>;
 
-Programa_PR : Funcs Programa_PR << append([]*ast.Func{$0.(*ast.Func)}, $1.([]*ast.Func)...), nil >>
-  | empty << []*ast.Func{}, nil >> ; 
+Programa : program Program_Create semicolon Vars Programa_PR main Body end
+  | program Program_Create semicolon Programa_PR main Body end;
 
-Vars : var id Vars_PR two_dots Type semicolon Vars_PR_PR << append([]*ast.Vars{ast.CreateVars(append([]string{string($1.(*token.Token).Lit)}, $2.([]string)...), $4)}, $6.([]*ast.Vars)...), nil >> ;
+Programa_PR : Funcs Programa_PR
+  | empty; 
 
-Vars_PR : comma id Vars_PR << append([]string{string($1.(*token.Token).Lit)}, $2.([]string)...), nil >>
-  | empty  << []string{}, nil >> ;
+Enqueue_Vars : id << ast.AddVarToQueue($0) >> ;
 
-Vars_PR_PR : id Vars_PR two_dots Type semicolon Vars_PR_PR << append([]*ast.Vars{ast.CreateVars(append([]string{string($0.(*token.Token).Lit)}, $1.([]string)...), $3)}, $5.([]*ast.Vars)...), nil >>
-  | empty << []*ast.Vars{}, nil >> ;
+Declare_Vars : Type << ast.AddVarsToTable($0.(string)) >> ;
 
-Type : int_rw | float_rw ;
+Vars : var Enqueue_Vars Vars_PR two_dots Declare_Vars semicolon Vars_PR_PR ;
 
+Vars_PR : comma Enqueue_Vars Vars_PR
+  | empty ;
 
+Vars_PR_PR : Enqueue_Vars Vars_PR two_dots Declare_Vars semicolon Vars_PR_PR
+  | empty ;
+
+Type : int_rw << ast.SetCurrentType("int") >> | float_rw << ast.SetCurrentType("float") >> ;
 
 Body : curly_open Body_PR curly_close;
 
@@ -76,12 +77,11 @@ Body_PR : Statement Body_PR
   | empty ;
 
 
-
-Statement : Assign << $0, nil >>
-  | Condition << $0, nil >>
-  | Cycle << $0, nil >>
-  | F_call << $0, nil >>
-  | Print << $0, nil >>;
+Statement : Assign
+  | Condition
+  | Cycle
+  | F_call
+  | Print;
 
 Print : print parenthesis_open Expr Print_PR parenthesis_close semicolon
   | print parenthesis_open string Print_PR parenthesis_close semicolon;
@@ -90,12 +90,15 @@ Print_PR : comma Expr Print_PR
   | comma string Print_PR
   | empty ;
 
-Assign : id equal Exp semicolon;
+Assign_Var : id << ast.AssignVarValue($0) >>;
+
+Assign : Assign_Var equal Exp semicolon;
 
 Cycle : while parenthesis_open Expr parenthesis_close do Body semicolon;
 
 Condition : if parenthesis_open Expr parenthesis_close Body semicolon
   | if parenthesis_open Expr parenthesis_close Body else Body semicolon;
+
 
 F_call : id parenthesis_open parenthesis_close semicolon
   | id parenthesis_open Expr F_call_PR parenthesis_close semicolon;
@@ -103,17 +106,8 @@ F_call : id parenthesis_open parenthesis_close semicolon
 F_call_PR : comma Expr F_call_PR 
   | empty ;
 
-
-
-
-
-
-Cte : myint << ast.CreateIntConstant($0) >>
-  | myfloat << ast.CreateFloatConstant($0) >>;
-
-
-
-
+Cte : myint
+  | myfloat;
 
 Expr : Exp
   | Exp greater_than Exp
@@ -130,21 +124,18 @@ Term : Fact
 
 Fact : parenthesis_open Expr parenthesis_close
   | Cte
-  | id
+  | id << ast.GetVarValue($0) >>
   | plus id
   | minus id
   | plus Cte
   | minus Cte;
 
+Func_Create : id << ast.CreateFuntion($0, false) >>;
 
+Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Body bracket_close semicolon
+  | void Func_Create parenthesis_open parenthesis_close bracket_open Vars Body bracket_close semicolon
+  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Body bracket_close semicolon
+  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Vars Body bracket_close semicolon;
 
-
-
-
-Funcs : void id parenthesis_open parenthesis_close bracket_open Body bracket_close semicolon << ast.CreateFunc($1) >>
-  | void id parenthesis_open parenthesis_close bracket_open Vars Body bracket_close semicolon << ast.CreateFunc($1) >>
-  | void id parenthesis_open id two_dots Type Funcs_PR parenthesis_close bracket_open Body bracket_close semicolon << ast.CreateFunc($1) >>
-  | void id parenthesis_open id two_dots Type Funcs_PR parenthesis_close bracket_open Vars Body bracket_close semicolon << ast.CreateFunc($1) >>;
-
-Funcs_PR : comma id two_dots Type Funcs_PR
+Funcs_PR : comma Enqueue_Vars two_dots Declare_Vars Funcs_PR
   | empty ;

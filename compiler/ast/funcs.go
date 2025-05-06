@@ -1,31 +1,44 @@
 package ast
 
-// type Function struct {
-// 	Name string
-// 	Vars map[string]Variable
-// }
+import (
+	"compiler/token"
+	"fmt"
+)
 
-// var ProgramFunctions map[string]Function = make(map[string]Function)
+// Struct for functions that will be used to store functions for the program
+type Function struct {
+	Name string
+	Vars map[string]Variable
+}
 
-// var CurrentModule string = ""
+// Variable that stores all of the functions for the program, each function has its own variable dictionary
+var ProgramFunctions map[string]Function = make(map[string]Function)
 
-// // 1
-// func CreateFunc(stmt interface{}) (Function, error) {
-// 	id := string(stmt.(*token.Token).Lit)
+// Variable that will be used to store the name of the program for Global Scope lookup (avoid having another separate table for global variables/functions)
+var GlobalProgramName string = ""
 
-// 	if _, ok := ProgramFunctions[id]; ok {
-// 		return Function{}, fmt.Errorf("Function " + id + " already exists")
-// 	}
+// Variable that will be used to store the current module the compiler is at
+var CurrentModule string = ""
 
-// 	fmt.Println("Creating function " + id)
+func CreateFuntion(stmt interface{}, isProgram bool) (*Function, error) {
+	id := string(stmt.(*token.Token).Lit)
 
-// 	var newFunc = Function{
-// 		Name: id,
-// 		Vars: make(map[string]Variable),
-// 	}
+	// Check if the function already exists in the defined functions table
+	if _, ok := ProgramFunctions[id]; ok {
+		return nil, fmt.Errorf("Function " + id + " already exists")
+	}
 
-// 	ProgramFunctions[id] = newFunc
-// 	CurrentModule = id
+	var newFunc = Function{
+		Name: id,
+		Vars: make(map[string]Variable),
+	}
 
-// 	return newFunc, nil
-// }
+	if isProgram {
+		GlobalProgramName = id
+	}
+
+	ProgramFunctions[id] = newFunc
+	CurrentModule = id
+
+	return &newFunc, nil
+}

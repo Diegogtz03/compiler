@@ -1,122 +1,137 @@
 package ast
 
-// import (
-// 	"compiler/token"
-// 	"compiler/utils"
-// 	"errors"
-// 	"fmt"
-// )
+import (
+	"compiler/token"
+	"compiler/utils"
+	"errors"
+	"fmt"
+)
 
-// type Variable struct {
-// 	Id    string
-// 	Type  string
-// 	Value string
-// }
+// Struct for variables that will be used to store variables for functions
+type Variable struct {
+	Id    string
+	Type  string
+	Value string
+}
 
-// var varsQueue = utils.Queue{}
+// Queue for variables, used to store upcoming ids which type is not yet defined
+var varsQueue = utils.Queue{}
 
-// var syntaxCube = map[string]map[string]map[string]string{
-// 	"int": {
-// 		"int": {
-// 			"+": "int",
-// 			"-": "int",
-// 			"*": "int",
-// 			"/": "int",
-// 		},
-// 		"float": {
-// 			"+": "float",
-// 			"-": "float",
-// 			"*": "float",
-// 			"/": "float",
-// 		},
-// 	},
-// 	"float": {
-// 		"int": {
-// 			"+": "float",
-// 			"-": "float",
-// 			"*": "float",
-// 			"/": "float",
-// 		},
-// 		"float": {
-// 			"+": "float",
-// 			"-": "float",
-// 			"*": "float",
-// 			"/": "float",
-// 		},
-// 	},
-// }
+// Variable that keeps track of the current type of the variable to be used
+var CurrentType string = ""
 
-// func AddVarToQueue(stmt interface{}) (Variable, error) {
-// 	id := string(stmt.(*token.Token).Lit)
+// Syntax cube to validate expression types and correct type assignments
+var syntaxCube = map[string]map[string]map[string]string{
+	"int": {
+		"int": {
+			"+": "int",
+			"-": "int",
+			"*": "int",
+			"/": "int",
+		},
+		"float": {
+			"+": "float",
+			"-": "float",
+			"*": "float",
+			"/": "float",
+		},
+	},
+	"float": {
+		"int": {
+			"+": "float",
+			"-": "float",
+			"*": "float",
+			"/": "float",
+		},
+		"float": {
+			"+": "float",
+			"-": "float",
+			"*": "float",
+			"/": "float",
+		},
+	},
+}
 
-// 	// add to queue
-// 	varsQueue.Enqueue(id)
-// 	if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
-// 		return Variable{}, errors.New("Variable " + id + " already exists in module " + CurrentModule)
-// 	}
+func AddVarToQueue(name interface{}) (*Variable, error) {
+	id := string(name.(*token.Token).Lit)
 
-// 	var newVar = Variable{
-// 		Id:   id,
-// 		Type: "int",
-// 	}
+	varsQueue.Enqueue(id)
 
-// 	ProgramFunctions[CurrentModule].Vars[id] = newVar
+	// Check if the variable already exists in the current module only
+	if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
+		return nil, errors.New("Variable " + id + " already exists in module " + CurrentModule)
+	}
 
-// 	return newVar, nil
-// }
+	return nil, nil
+}
 
-// func setCurrentType(stmt interface{}) (string, error) {
-// 	var_type := string(stmt.(*token.Token).Lit)
+func SetCurrentType(varType string) (string, error) {
+	CurrentType = varType
 
-// 	return var_type, nil
-// }
+	return varType, nil
+}
 
-// func AddVarsToTable(stmt interface{}) (Variable, error) {
-// 	var_type := string(stmt.(*token.Token).Lit)
+func AddVarsToTable(varType string) (*Variable, error) {
+	for !varsQueue.IsEmpty() {
+		id := varsQueue.Dequeue()
 
-// 	for !varsQueue.IsEmpty() {
-// 		id := varsQueue.Dequeue()
+		// Check if the variable already exists in the current module only and also in the global scope
+		if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
+			return nil, fmt.Errorf("Variable " + id + " already exists in module " + CurrentModule)
+		} else if CurrentModule != GlobalProgramName {
+			if _, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
+				return nil, fmt.Errorf("Global variable " + id + " already exists in program " + GlobalProgramName)
+			}
+		}
 
-// 		if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
-// 			return Variable{}, fmt.Errorf("Variable " + id + " already exists in module " + CurrentModule)
-// 		}
+		var newVar = Variable{
+			Id:   id,
+			Type: varType,
+		}
 
-// 		var newVar = Variable{
-// 			Id:   id,
-// 			Type: var_type,
-// 		}
+		ProgramFunctions[CurrentModule].Vars[id] = newVar
+	}
 
-// 		ProgramFunctions[CurrentModule].Vars[id] = newVar
-// 	}
+	return nil, nil
+}
 
-// 	return Variable{}, nil
-// }
+func GetVarValue(name interface{}) (interface{}, error) {
+	id := string(name.(*token.Token).Lit)
 
-// // current_module
-// // current_type
-// // current_id
-// // current_operator
-// // current_sign
-// // current_cte
+	if v, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
+		if v.Value != "assigned" {
+			return nil, fmt.Errorf("Variable '" + id + "' not assigned")
+		}
+		return v.Value, nil
+	} else if CurrentModule != GlobalProgramName {
+		if v, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
+			if v.Value != "assigned" {
+				return nil, fmt.Errorf("Variable '" + id + "' not assigned")
+			}
+			return v.Value, nil
+		}
+	}
 
-// // 0 -> Crear Dir Funciones
-// // 1 -> Dir Funciones add id and type // set modulo actual
-// // 2 -> Crear Tabla Vars, ligada a módulo actual
-// // 3 -> Set tipo actual
-// // 4 -> If var in table --> ERROR else --> Add tabla or queue vars (todo lo necesario) [TYPE NULL or queue with ids]
-// // 5 -> Set tipo actual void
-// // 6 -> Set list of ids with type or all with null types with current types (add queue to var tables)
-// // 7 -> Verify if ID exists in modulo actual, set id actual
-// // 8 -> Assign expression result to id actual
-// // 9 -> if theres an operator, use it, Assign result of term to current_term, current operator to null
-// // 10 --> set current operator
-// // 11 --> set current sign
-// // 12 --> get given id from var table from module --> assign to current_cte
-// // 13 --> set current cte
-// // 14 -->
+	return nil, fmt.Errorf("Variable '" + id + "' not defined")
+}
 
-// On program node --> assign to func table --> current module == "global"
-// On func node --> assign to func table --> current module == func name -- if exists --> error
-// On vars node --> assign to vars table --> current module == func name --> if exists --> error
+// TODO: Implement correct assignment of values to variables
+func AssignVarValue(name interface{}) (interface{}, error) {
+	id := string(name.(*token.Token).Lit)
 
-// on expression node --> check matrix of types to see if the operation is valid
+	if v, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
+		v.Value = "assigned"
+		ProgramFunctions[CurrentModule].Vars[id] = v
+
+		return nil, nil
+	} else if CurrentModule != GlobalProgramName {
+		if v, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
+			v.Value = "assigned"
+			ProgramFunctions[GlobalProgramName].Vars[id] = v
+
+			return nil, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Variable '" + id + "' not defined")
+}
