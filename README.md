@@ -6,10 +6,15 @@
 
 - ### Entrega 0
 
-  - Implementación de
+  - Definición de gramática en formato BNF
 
 - ### Entrega 1
-  - Implementación de
+
+  - Implementación de gramática simple con libreria a utilizar (Gocc)
+
+- ### Entrega 2
+
+  - Implementación de puntos neurálgicos para el llenado de tabla de funciones y tabla de variables
 
 # [Tarea 1](https://github.com/Diegogtz03/compiler/tree/main/tarea-1)
 

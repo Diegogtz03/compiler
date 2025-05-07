@@ -20,34 +20,54 @@ var varsQueue = utils.Queue{}
 // Variable that keeps track of the current type of the variable to be used
 var CurrentType string = ""
 
+type Type int
+
+const (
+	Int Type = iota
+	Float
+	Error
+)
+
 // Syntax cube to validate expression types and correct type assignments
-var syntaxCube = map[string]map[string]map[string]string{
-	"int": {
-		"int": {
-			"+": "int",
-			"-": "int",
-			"*": "int",
-			"/": "int",
+var syntaxCube = map[Type]map[Type]map[string]Type{
+	Int: {
+		Int: {
+			"+":  Int,
+			"-":  Int,
+			"*":  Int,
+			"/":  Int,
+			">":  Int,
+			"<":  Int,
+			"!=": Int,
 		},
-		"float": {
-			"+": "float",
-			"-": "float",
-			"*": "float",
-			"/": "float",
+		Float: {
+			"+":  Float,
+			"-":  Float,
+			"*":  Float,
+			"/":  Float,
+			">":  Int,
+			"<":  Int,
+			"!=": Int,
 		},
 	},
-	"float": {
-		"int": {
-			"+": "float",
-			"-": "float",
-			"*": "float",
-			"/": "float",
+	Float: {
+		Int: {
+			"+":  Float,
+			"-":  Float,
+			"*":  Float,
+			"/":  Float,
+			">":  Int,
+			"<":  Int,
+			"!=": Int,
 		},
-		"float": {
-			"+": "float",
-			"-": "float",
-			"*": "float",
-			"/": "float",
+		Float: {
+			"+":  Float,
+			"-":  Float,
+			"*":  Float,
+			"/":  Float,
+			">":  Int,
+			"<":  Int,
+			"!=": Int,
 		},
 	},
 }

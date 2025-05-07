@@ -245,8 +245,7 @@ func TestASTDetectsFunctionRedeclaration(t *testing.T) {
 
 		void anotherFunction(a : int, b : float) [
 			{
-				d = a + b;
-				print(d);
+				x = 2;
 			}
 		];
 
@@ -254,8 +253,7 @@ func TestASTDetectsFunctionRedeclaration(t *testing.T) {
 			var c : float;
 
 			{
-				d = a + b;
-				print(d);
+				c = 3;
 			}
 		];
 
