@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"compiler/memory"
 	"compiler/token"
 	"fmt"
 )
@@ -25,7 +26,7 @@ func CreateFuntion(stmt interface{}, isProgram bool) (*Function, error) {
 
 	// Check if the function already exists in the defined functions table
 	if _, ok := ProgramFunctions[id]; ok {
-		return nil, fmt.Errorf("Function " + id + " already exists")
+		return nil, fmt.Errorf("Function %s already exists", id)
 	}
 
 	var newFunc = Function{
@@ -41,4 +42,10 @@ func CreateFuntion(stmt interface{}, isProgram bool) (*Function, error) {
 	CurrentModule = id
 
 	return &newFunc, nil
+}
+
+func ResetToGlobalScope() (string, error) {
+	CurrentModule = GlobalProgramName
+	memory.ResetLocalMemory()
+	return CurrentModule, nil
 }

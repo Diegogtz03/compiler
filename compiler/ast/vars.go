@@ -1,7 +1,9 @@
 package ast
 
 import (
+	"compiler/memory"
 	"compiler/token"
+	"compiler/types"
 	"compiler/utils"
 	"errors"
 	"fmt"
@@ -9,65 +11,104 @@ import (
 
 // Struct for variables that will be used to store variables for functions
 type Variable struct {
-	Id    string
-	Type  string
-	Value string
+	Id          string
+	Type        types.Type
+	MemoryIndex int
 }
 
 // Queue for variables, used to store upcoming ids which type is not yet defined
 var varsQueue = utils.Queue{}
 
 // Variable that keeps track of the current type of the variable to be used
-var CurrentType string = ""
-
-type Type int
-
-const (
-	Int Type = iota
-	Float
-	Error
-)
+var CurrentType types.Type = types.Error
 
 // Syntax cube to validate expression types and correct type assignments
-var syntaxCube = map[Type]map[Type]map[string]Type{
-	Int: {
-		Int: {
-			"+":  Int,
-			"-":  Int,
-			"*":  Int,
-			"/":  Int,
-			">":  Int,
-			"<":  Int,
-			"!=": Int,
+var syntaxCube = map[types.Type]map[types.Type]map[string]types.Type{
+	types.Int: {
+		types.Int: {
+			"+":  types.Int,
+			"-":  types.Int,
+			"*":  types.Int,
+			"/":  types.Int,
+			">":  types.Bool,
+			"<":  types.Bool,
+			"!=": types.Bool,
 		},
-		Float: {
-			"+":  Float,
-			"-":  Float,
-			"*":  Float,
-			"/":  Float,
-			">":  Int,
-			"<":  Int,
-			"!=": Int,
+		types.Float: {
+			"+":  types.Float,
+			"-":  types.Float,
+			"*":  types.Float,
+			"/":  types.Float,
+			">":  types.Bool,
+			"<":  types.Bool,
+			"!=": types.Bool,
+		},
+		types.Bool: {
+			"+":  types.Error,
+			"-":  types.Error,
+			"*":  types.Error,
+			"/":  types.Error,
+			">":  types.Error,
+			"<":  types.Error,
+			"!=": types.Error,
 		},
 	},
-	Float: {
-		Int: {
-			"+":  Float,
-			"-":  Float,
-			"*":  Float,
-			"/":  Float,
-			">":  Int,
-			"<":  Int,
-			"!=": Int,
+	types.Float: {
+		types.Int: {
+			"+":  types.Float,
+			"-":  types.Float,
+			"*":  types.Float,
+			"/":  types.Float,
+			">":  types.Bool,
+			"<":  types.Bool,
+			"!=": types.Bool,
 		},
-		Float: {
-			"+":  Float,
-			"-":  Float,
-			"*":  Float,
-			"/":  Float,
-			">":  Int,
-			"<":  Int,
-			"!=": Int,
+		types.Float: {
+			"+":  types.Float,
+			"-":  types.Float,
+			"*":  types.Float,
+			"/":  types.Float,
+			">":  types.Bool,
+			"<":  types.Bool,
+			"!=": types.Bool,
+		},
+		types.Bool: {
+			"+":  types.Error,
+			"-":  types.Error,
+			"*":  types.Error,
+			"/":  types.Error,
+			">":  types.Error,
+			"<":  types.Error,
+			"!=": types.Error,
+		},
+	},
+	types.Bool: {
+		types.Int: {
+			"+":  types.Error,
+			"-":  types.Error,
+			"*":  types.Error,
+			"/":  types.Error,
+			">":  types.Error,
+			"<":  types.Error,
+			"!=": types.Error,
+		},
+		types.Float: {
+			"+":  types.Error,
+			"-":  types.Error,
+			"*":  types.Error,
+			"/":  types.Error,
+			">":  types.Error,
+			"<":  types.Error,
+			"!=": types.Error,
+		},
+		types.Bool: {
+			"+":  types.Error,
+			"-":  types.Error,
+			"*":  types.Error,
+			"/":  types.Error,
+			">":  types.Error,
+			"<":  types.Error,
+			"!=": types.Error,
 		},
 	},
 }
@@ -85,73 +126,44 @@ func AddVarToQueue(name interface{}) (*Variable, error) {
 	return nil, nil
 }
 
-func SetCurrentType(varType string) (string, error) {
+func SetCurrentType(varType types.Type) (types.Type, error) {
 	CurrentType = varType
 
 	return varType, nil
 }
 
-func AddVarsToTable(varType string) (*Variable, error) {
+func AddVarsToTable(varType types.Type) (*Variable, error) {
+	var memoryType types.MemoryType
+
+	if CurrentModule == GlobalProgramName {
+		memoryType = types.MemoryType(memory.Global)
+	} else {
+		memoryType = types.MemoryType(memory.Local)
+	}
+
 	for !varsQueue.IsEmpty() {
 		id := varsQueue.Dequeue()
 
 		// Check if the variable already exists in the current module only and also in the global scope
 		if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
-			return nil, fmt.Errorf("Variable " + id + " already exists in module " + CurrentModule)
+			return nil, fmt.Errorf("Variable %s already exists in module %s", id, CurrentModule)
 		} else if CurrentModule != GlobalProgramName {
 			if _, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
-				return nil, fmt.Errorf("Global variable " + id + " already exists in program " + GlobalProgramName)
+				return nil, fmt.Errorf("Variable %s already exists in module %s", id, CurrentModule)
 			}
 		}
 
+		// Reserve space in "memory" for the variable
+		var index int = memory.AllocateMemory(varType, memoryType)
+
 		var newVar = Variable{
-			Id:   id,
-			Type: varType,
+			Id:          id,
+			Type:        varType,
+			MemoryIndex: index,
 		}
 
 		ProgramFunctions[CurrentModule].Vars[id] = newVar
 	}
 
 	return nil, nil
-}
-
-func GetVarValue(name interface{}) (interface{}, error) {
-	id := string(name.(*token.Token).Lit)
-
-	if v, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
-		if v.Value != "assigned" {
-			return nil, fmt.Errorf("Variable '" + id + "' not assigned")
-		}
-		return v.Value, nil
-	} else if CurrentModule != GlobalProgramName {
-		if v, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
-			if v.Value != "assigned" {
-				return nil, fmt.Errorf("Variable '" + id + "' not assigned")
-			}
-			return v.Value, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Variable '" + id + "' not defined")
-}
-
-// TODO: Implement correct assignment of values to variables
-func AssignVarValue(name interface{}) (interface{}, error) {
-	id := string(name.(*token.Token).Lit)
-
-	if v, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
-		v.Value = "assigned"
-		ProgramFunctions[CurrentModule].Vars[id] = v
-
-		return nil, nil
-	} else if CurrentModule != GlobalProgramName {
-		if v, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
-			v.Value = "assigned"
-			ProgramFunctions[GlobalProgramName].Vars[id] = v
-
-			return nil, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Variable '" + id + "' not defined")
 }

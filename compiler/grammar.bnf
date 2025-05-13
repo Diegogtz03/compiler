@@ -45,7 +45,10 @@ string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
 
 /* ----------------- Sintaxis ----------------- */
 
-<< import "compiler/ast" >> 
+<< import (
+  "compiler/ast"
+  "compiler/types"
+)>> 
 
 Start : Programa ;
 
@@ -59,7 +62,7 @@ Programa_PR : Funcs Programa_PR
 
 Enqueue_Vars : id << ast.AddVarToQueue($0) >> ;
 
-Declare_Vars : Type << ast.AddVarsToTable($0.(string)) >> ;
+Declare_Vars : Type << ast.AddVarsToTable($0.(types.Type)) >> ;
 
 Vars : var Enqueue_Vars Vars_PR two_dots Declare_Vars semicolon Vars_PR_PR ;
 
@@ -69,13 +72,12 @@ Vars_PR : comma Enqueue_Vars Vars_PR
 Vars_PR_PR : Enqueue_Vars Vars_PR two_dots Declare_Vars semicolon Vars_PR_PR
   | empty ;
 
-Type : int_rw << ast.SetCurrentType("int") >> | float_rw << ast.SetCurrentType("float") >> ;
+Type : int_rw << ast.SetCurrentType(types.Int) >> | float_rw << ast.SetCurrentType(types.Float) >> ;
 
 Body : curly_open Body_PR curly_close;
 
 Body_PR : Statement Body_PR
   | empty ;
-
 
 Statement : Assign
   | Condition
@@ -90,9 +92,7 @@ Print_PR : comma Expr Print_PR
   | comma string Print_PR
   | empty ;
 
-Assign_Var : id << ast.AssignVarValue($0) >>;
-
-Assign : Assign_Var equal Exp semicolon;
+Assign : id equal Exp semicolon;
 
 Cycle : while parenthesis_open Expr parenthesis_close do Body semicolon;
 
@@ -124,7 +124,7 @@ Term : Fact
 
 Fact : parenthesis_open Expr parenthesis_close
   | Cte
-  | id << ast.GetVarValue($0) >>
+  | id
   | plus id
   | minus id
   | plus Cte
@@ -132,10 +132,12 @@ Fact : parenthesis_open Expr parenthesis_close
 
 Func_Create : id << ast.CreateFuntion($0, false) >>;
 
-Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Body bracket_close semicolon
-  | void Func_Create parenthesis_open parenthesis_close bracket_open Vars Body bracket_close semicolon
-  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Body bracket_close semicolon
-  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Vars Body bracket_close semicolon;
+Func_Close : semicolon << ast.ResetToGlobalScope() >>;
+
+Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Body bracket_close Func_Close
+  | void Func_Create parenthesis_open parenthesis_close bracket_open Vars Body bracket_close Func_Close
+  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Body bracket_close Func_Close
+  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Vars Body bracket_close Func_Close;
 
 Funcs_PR : comma Enqueue_Vars two_dots Declare_Vars Funcs_PR
   | empty ;
