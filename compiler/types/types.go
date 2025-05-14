@@ -20,8 +20,24 @@ const (
 )
 
 type Quadruple struct {
-	Op     string
+	Op     Operator
 	Arg1   int
 	Arg2   int
 	Result int
 }
+
+type Operator int
+
+const (
+	Add Operator = iota
+	Sub
+	Mul
+	Div
+	Assign
+	NotEqual
+	LessThan
+	GreaterThan
+	Print
+	StackDivider
+	ErrorOperator
+)

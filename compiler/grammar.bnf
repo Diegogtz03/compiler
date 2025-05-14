@@ -79,11 +79,11 @@ Body : curly_open Body_PR curly_close;
 Body_PR : Statement Body_PR
   | empty ;
 
-Statement : Assign
-  | Condition
-  | Cycle
-  | F_call
-  | Print;
+Statement : Assign << ast.EndExpression() >>
+  | Condition << ast.EndExpression() >>
+  | Cycle << ast.EndExpression() >>
+  | F_call << ast.EndExpression() >>
+  | Print << ast.EndExpression() >>;
 
 Print : print parenthesis_open Expr Print_PR parenthesis_close semicolon
   | print parenthesis_open string Print_PR parenthesis_close semicolon;
@@ -92,13 +92,14 @@ Print_PR : comma Expr Print_PR
   | comma string Print_PR
   | empty ;
 
-Assign : id equal Exp semicolon;
+Assign : Id_Index Assign_Operator Exp semicolon;
+
+Assign_Operator : equal << ast.PushOperator(types.Assign) >>;
 
 Cycle : while parenthesis_open Expr parenthesis_close do Body semicolon;
 
 Condition : if parenthesis_open Expr parenthesis_close Body semicolon
   | if parenthesis_open Expr parenthesis_close Body else Body semicolon;
-
 
 F_call : id parenthesis_open parenthesis_close semicolon
   | id parenthesis_open Expr F_call_PR parenthesis_close semicolon;
@@ -110,23 +111,36 @@ Cte : myint
   | myfloat;
 
 Expr : Exp
-  | Exp greater_than Exp
-  | Exp less_than Exp
-  | Exp not_equal Exp;
+  | Exp GreaterThan_Operator Exp
+  | Exp LessThan_Operator Exp
+  | Exp NotEqual_Operator Exp;
 
 Exp : Term
-  | Term plus Exp
-  | Term minus Exp;
+  | Term Plus_Operator Exp
+  | Term Minus_Operator Exp;
 
 Term : Fact
-  | Fact mult Term
-  | Fact div Term;
+  | Fact Mult_Operator Term
+  | Fact Div_Operator Term;
 
-Fact : parenthesis_open Expr parenthesis_close
+Id_Index : id << ast.GetVarIndex($0) >>;
+
+Plus_Operator : plus << ast.PushOperator(types.Add) >>;
+Minus_Operator : minus << ast.PushOperator(types.Sub) >>;
+Mult_Operator : mult << ast.PushOperator(types.Mul) >>;
+Div_Operator : div << ast.PushOperator(types.Div) >>;
+GreaterThan_Operator : greater_than << ast.PushOperator(types.GreaterThan) >>;
+LessThan_Operator : less_than << ast.PushOperator(types.LessThan) >>;
+NotEqual_Operator : not_equal << ast.PushOperator(types.NotEqual) >>;
+
+Fact_Open_Divider : parenthesis_open << ast.PushOperator(types.StackDivider) >>;
+Fact_Close_Divider : parenthesis_close << ast.CloseFakeStack() >>;
+
+Fact : Fact_Open_Divider Expr Fact_Close_Divider
   | Cte
-  | id
-  | plus id
-  | minus id
+  | Id_Index
+  | plus Id_Index
+  | minus Id_Index
   | plus Cte
   | minus Cte;
 

@@ -23,92 +23,92 @@ var varsQueue = utils.Queue{}
 var CurrentType types.Type = types.Error
 
 // Syntax cube to validate expression types and correct type assignments
-var syntaxCube = map[types.Type]map[types.Type]map[string]types.Type{
+var syntaxCube = map[types.Type]map[types.Type]map[types.Operator]types.Type{
 	types.Int: {
 		types.Int: {
-			"+":  types.Int,
-			"-":  types.Int,
-			"*":  types.Int,
-			"/":  types.Int,
-			">":  types.Bool,
-			"<":  types.Bool,
-			"!=": types.Bool,
+			types.Add:         types.Int,
+			types.Sub:         types.Int,
+			types.Mul:         types.Int,
+			types.Div:         types.Int,
+			types.GreaterThan: types.Bool,
+			types.LessThan:    types.Bool,
+			types.NotEqual:    types.Bool,
 		},
 		types.Float: {
-			"+":  types.Float,
-			"-":  types.Float,
-			"*":  types.Float,
-			"/":  types.Float,
-			">":  types.Bool,
-			"<":  types.Bool,
-			"!=": types.Bool,
+			types.Add:         types.Float,
+			types.Sub:         types.Float,
+			types.Mul:         types.Float,
+			types.Div:         types.Float,
+			types.GreaterThan: types.Bool,
+			types.LessThan:    types.Bool,
+			types.NotEqual:    types.Bool,
 		},
 		types.Bool: {
-			"+":  types.Error,
-			"-":  types.Error,
-			"*":  types.Error,
-			"/":  types.Error,
-			">":  types.Error,
-			"<":  types.Error,
-			"!=": types.Error,
+			types.Add:         types.Error,
+			types.Sub:         types.Error,
+			types.Mul:         types.Error,
+			types.Div:         types.Error,
+			types.GreaterThan: types.Error,
+			types.LessThan:    types.Error,
+			types.NotEqual:    types.Error,
 		},
 	},
 	types.Float: {
 		types.Int: {
-			"+":  types.Float,
-			"-":  types.Float,
-			"*":  types.Float,
-			"/":  types.Float,
-			">":  types.Bool,
-			"<":  types.Bool,
-			"!=": types.Bool,
+			types.Add:         types.Float,
+			types.Sub:         types.Float,
+			types.Mul:         types.Float,
+			types.Div:         types.Float,
+			types.GreaterThan: types.Bool,
+			types.LessThan:    types.Bool,
+			types.NotEqual:    types.Bool,
 		},
 		types.Float: {
-			"+":  types.Float,
-			"-":  types.Float,
-			"*":  types.Float,
-			"/":  types.Float,
-			">":  types.Bool,
-			"<":  types.Bool,
-			"!=": types.Bool,
+			types.Add:         types.Float,
+			types.Sub:         types.Float,
+			types.Mul:         types.Float,
+			types.Div:         types.Float,
+			types.GreaterThan: types.Bool,
+			types.LessThan:    types.Bool,
+			types.NotEqual:    types.Bool,
 		},
 		types.Bool: {
-			"+":  types.Error,
-			"-":  types.Error,
-			"*":  types.Error,
-			"/":  types.Error,
-			">":  types.Error,
-			"<":  types.Error,
-			"!=": types.Error,
+			types.Add:         types.Error,
+			types.Sub:         types.Error,
+			types.Mul:         types.Error,
+			types.Div:         types.Error,
+			types.GreaterThan: types.Error,
+			types.LessThan:    types.Error,
+			types.NotEqual:    types.Error,
 		},
 	},
 	types.Bool: {
 		types.Int: {
-			"+":  types.Error,
-			"-":  types.Error,
-			"*":  types.Error,
-			"/":  types.Error,
-			">":  types.Error,
-			"<":  types.Error,
-			"!=": types.Error,
+			types.Add:         types.Error,
+			types.Sub:         types.Error,
+			types.Mul:         types.Error,
+			types.Div:         types.Error,
+			types.GreaterThan: types.Error,
+			types.LessThan:    types.Error,
+			types.NotEqual:    types.Error,
 		},
 		types.Float: {
-			"+":  types.Error,
-			"-":  types.Error,
-			"*":  types.Error,
-			"/":  types.Error,
-			">":  types.Error,
-			"<":  types.Error,
-			"!=": types.Error,
+			types.Add:         types.Error,
+			types.Sub:         types.Error,
+			types.Mul:         types.Error,
+			types.Div:         types.Error,
+			types.GreaterThan: types.Error,
+			types.LessThan:    types.Error,
+			types.NotEqual:    types.Error,
 		},
 		types.Bool: {
-			"+":  types.Error,
-			"-":  types.Error,
-			"*":  types.Error,
-			"/":  types.Error,
-			">":  types.Error,
-			"<":  types.Error,
-			"!=": types.Error,
+			types.Add:         types.Error,
+			types.Sub:         types.Error,
+			types.Mul:         types.Error,
+			types.Div:         types.Error,
+			types.GreaterThan: types.Error,
+			types.LessThan:    types.Error,
+			types.NotEqual:    types.Error,
 		},
 	},
 }
@@ -166,4 +166,23 @@ func AddVarsToTable(varType types.Type) (*Variable, error) {
 	}
 
 	return nil, nil
+}
+
+func GetVarIndex(stmt interface{}) (int, error) {
+	id := string(stmt.(*token.Token).Lit)
+
+	if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
+		var index int = ProgramFunctions[CurrentModule].Vars[id].MemoryIndex
+		PushOperand(index)
+
+		return index, nil
+	} else if CurrentModule != GlobalProgramName {
+		if _, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
+			var index int = ProgramFunctions[GlobalProgramName].Vars[id].MemoryIndex
+			PushOperand(index)
+
+			return index, nil
+		}
+	}
+	return 0, fmt.Errorf("Variable %s not found in module %s", id, CurrentModule)
 }

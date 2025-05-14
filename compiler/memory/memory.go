@@ -102,6 +102,40 @@ func AllocateMemory(varType types.Type, memoryType types.MemoryType) int {
 	return 0
 }
 
+func IndexToType(index int) types.Type {
+	if index >= GLOBAL_INT_START && index < GLOBAL_FLOAT_START {
+		return types.Int
+	}
+	if index >= GLOBAL_FLOAT_START && index < GLOBAL_FLOAT_START {
+		return types.Float
+	}
+	if index >= LOCAL_INT_START && index < LOCAL_FLOAT_START {
+		return types.Int
+	}
+	if index >= LOCAL_FLOAT_START && index < LOCAL_FLOAT_START {
+		return types.Float
+	}
+	if index >= TEMP_INT_START && index < TEMP_FLOAT_START {
+		return types.Int
+	}
+	if index >= TEMP_FLOAT_START && index < TEMP_FLOAT_START {
+		return types.Float
+	}
+	if index >= TEMP_BOOL_START && index < TEMP_BOOL_START {
+		return types.Bool
+	}
+	if index >= CONSTANT_INT_START && index < CONSTANT_FLOAT_START {
+		return types.Int
+	}
+	if index >= CONSTANT_FLOAT_START && index < CONSTANT_STRING_START {
+		return types.Float
+	}
+	if index >= CONSTANT_STRING_START && index < CONSTANT_STRING_START {
+		return types.String
+	}
+	return types.Error
+}
+
 func ResetLocalMemory() {
 	CurrentLocalInt = 0
 	CurrentLocalFloat = 0

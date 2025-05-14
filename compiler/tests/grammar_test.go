@@ -30,6 +30,8 @@ func TestTheParserCorrectlyParsesACorrectSample(t *testing.T) {
 		t.Fatalf("parse failed: %v", perr)
 	}
 
+	PrintQuadrupleList(ast.QuadrupleList)
+
 	t.Logf("parse OK %#v", tree)
 }
 
@@ -81,6 +83,8 @@ func TestTheParserCorrectlyParsesAnotherCorrectSample(t *testing.T) {
 	if perr != nil {
 		t.Fatalf("parse failed: %v", perr)
 	}
+
+	PrintQuadrupleList(ast.QuadrupleList)
 
 	t.Logf("parse OK %#v", tree)
 }
@@ -321,6 +325,35 @@ func TestASTDetectsUnassignedVariable(t *testing.T) {
 	tree, perr := p.Parse(l)
 
 	PrintFunctionMapWithVars(ast.ProgramFunctions)
+
+	if perr != nil {
+		t.Fatalf("parse failed: %v", perr)
+	}
+
+	t.Logf("parse OK %#v", tree)
+}
+
+// ------------------------ Expression Tests ------------------------
+
+func TestASTDetectsExpression(t *testing.T) {
+	src :=
+		`program demoEleven;
+
+		var a, b, c, z : int;
+
+		main {
+			z = (a + b) * c;
+		}
+		end`
+
+	l := lexer.NewLexer([]byte(src))
+	p := parser.NewParser()
+
+	tree, perr := p.Parse(l)
+
+	PrintFunctionMapWithVars(ast.ProgramFunctions)
+
+	PrintQuadrupleList(ast.QuadrupleList)
 
 	if perr != nil {
 		t.Fatalf("parse failed: %v", perr)
