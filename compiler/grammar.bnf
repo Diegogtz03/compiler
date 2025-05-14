@@ -107,7 +107,7 @@ F_call : id parenthesis_open parenthesis_close semicolon
 F_call_PR : comma Expr F_call_PR 
   | empty ;
 
-Cte : myint
+Cte : myint 
   | myfloat;
 
 Expr : Exp

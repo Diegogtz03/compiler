@@ -60,42 +60,52 @@ func AllocateMemory(varType types.Type, memoryType types.MemoryType) int {
 		switch memoryType {
 		case types.Global:
 			CurrentGlobalInt++
+			GlobalInts = append(GlobalInts, -999)
 			return GLOBAL_INT_START + CurrentGlobalInt
 		case types.Local:
 			CurrentLocalInt++
+			LocalInts = append(LocalInts, -999)
 			return LOCAL_INT_START + CurrentLocalInt
 		case types.Temp:
 			CurrentTempInt++
+			TempInts = append(TempInts, -999)
 			return TEMP_INT_START + CurrentTempInt
 		case types.Constant:
 			CurrentConstantInt++
+			ConstantInts = append(ConstantInts, -999)
 			return CONSTANT_INT_START + CurrentConstantInt
 		}
 	case types.Float:
 		switch memoryType {
 		case types.Global:
 			CurrentGlobalFloat++
+			GlobalFloats = append(GlobalFloats, -999.0)
 			return GLOBAL_FLOAT_START + CurrentGlobalFloat
 		case types.Local:
 			CurrentLocalFloat++
+			LocalFloats = append(LocalFloats, -999.0)
 			return LOCAL_FLOAT_START + CurrentLocalFloat
 		case types.Temp:
 			CurrentTempFloat++
+			TempFloats = append(TempFloats, -999.0)
 			return TEMP_FLOAT_START + CurrentTempFloat
 		case types.Constant:
 			CurrentConstantFloat++
+			ConstantFloats = append(ConstantFloats, -999.0)
 			return CONSTANT_FLOAT_START + CurrentConstantFloat
 		}
 	case types.Bool:
 		switch memoryType {
 		case types.Temp:
 			CurrentTempBool++
+			TempBools = append(TempBools, false)
 			return TEMP_BOOL_START + CurrentTempBool
 		}
 	case types.String:
 		switch memoryType {
 		case types.Constant:
 			CurrentConstantString++
+			ConstantStrings = append(ConstantStrings, "")
 			return CONSTANT_STRING_START + CurrentConstantString
 		}
 	}
@@ -139,4 +149,30 @@ func IndexToType(index int) types.Type {
 func ResetLocalMemory() {
 	CurrentLocalInt = 0
 	CurrentLocalFloat = 0
+}
+
+func AssignIntConstant(memoryType types.MemoryType, index int, value int) {
+	switch memoryType {
+	case types.Global:
+		GlobalInts[index-GLOBAL_INT_START] = value
+	case types.Local:
+		LocalInts[index-LOCAL_INT_START] = value
+	case types.Temp:
+		TempInts[index-TEMP_INT_START] = value
+	case types.Constant:
+		ConstantInts[index-CONSTANT_INT_START] = value
+	}
+}
+
+func AssignFloatConstant(memoryType types.MemoryType, index int, value float64) {
+	switch memoryType {
+	case types.Global:
+		GlobalFloats[index-GLOBAL_FLOAT_START] = value
+	case types.Local:
+		LocalFloats[index-LOCAL_FLOAT_START] = value
+	case types.Temp:
+		TempFloats[index-TEMP_FLOAT_START] = value
+	case types.Constant:
+		ConstantFloats[index-CONSTANT_FLOAT_START] = value
+	}
 }
