@@ -175,11 +175,23 @@ func GetVarIndex(stmt interface{}) (int, error) {
 		var index int = ProgramFunctions[CurrentModule].Vars[id].MemoryIndex
 		PushOperand(index)
 
+		// Push negative quadruple multiplication
+		if memory.ConstantIsNegative {
+			PushOperand(memory.CONSTANT_INT_START)
+			PushOperator(types.Mul)
+		}
+
 		return index, nil
 	} else if CurrentModule != GlobalProgramName {
 		if _, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
 			var index int = ProgramFunctions[GlobalProgramName].Vars[id].MemoryIndex
 			PushOperand(index)
+
+			// Push negative quadruple multiplication
+			if memory.ConstantIsNegative {
+				PushOperand(memory.CONSTANT_INT_START)
+				PushOperator(types.Mul)
+			}
 
 			return index, nil
 		}

@@ -40,4 +40,7 @@ const (
 	Print
 	StackDivider
 	ErrorOperator
+	Goto
+	GotoF
+	GotoT
 )

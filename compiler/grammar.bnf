@@ -38,7 +38,7 @@ div: '/';
 id : 'a'-'z' {'a'-'z'} { ('_' | 'A'-'Z') ('a'-'z' | 'A'-'Z' | '0'-'9') {'a'-'z' | 'A'-'Z' | '0'-'9'} } ;
 myint : '0'-'9' {'0'-'9'} ;
 myfloat : '0'-'9' {'0'-'9'} '.' '0'-'9' {'0'-'9'} ;
-string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
+string : '"' {'a'-'z' | 'A'-'Z' | '0'-'9' | ' ' | '.' | ',' | '!' | '?' | '-' | '_'} '"' ;
 
 !whitespace : ' ' | '\t' | '\n' | '\r' ;
 
@@ -48,6 +48,8 @@ string : '"' {'a'-'z' | 'A'-'Z'} '"' ;
 << import (
   "compiler/ast"
   "compiler/types"
+  "compiler/memory"
+  "compiler/token"
 )>> 
 
 Start : Programa ;
@@ -85,11 +87,17 @@ Statement : Assign << ast.EndExpression() >>
   | F_call << ast.EndExpression() >>
   | Print << ast.EndExpression() >>;
 
-Print : print parenthesis_open Expr Print_PR parenthesis_close semicolon
-  | print parenthesis_open string Print_PR parenthesis_close semicolon;
+String_Constant : string << ast.PushOperand(memory.AssignStringConstant($0.(*token.Token))) >>;
 
-Print_PR : comma Expr Print_PR
-  | comma string Print_PR
+Print_Op : print << ast.PushOperator(types.Print) >>;
+
+Print : Print_Op parenthesis_open Expr Print_PR parenthesis_close semicolon
+  | Print_Op parenthesis_open String_Constant Print_PR parenthesis_close semicolon;
+
+Print_PR_Op : comma << ast.PushOperator(types.Print) >>;
+
+Print_PR : Print_PR_Op Expr Print_PR
+  | Print_PR_Op String_Constant Print_PR
   | empty ;
 
 Assign : Id_Index Assign_Operator Exp semicolon;
@@ -107,8 +115,8 @@ F_call : id parenthesis_open parenthesis_close semicolon
 F_call_PR : comma Expr F_call_PR 
   | empty ;
 
-Cte : myint 
-  | myfloat;
+Cte : myint << ast.PushOperand(memory.AssignIntConstant($0)) >>
+  | myfloat << ast.PushOperand(memory.AssignFloatConstant($0)) >>;
 
 Expr : Exp
   | Exp GreaterThan_Operator Exp
@@ -133,6 +141,8 @@ GreaterThan_Operator : greater_than << ast.PushOperator(types.GreaterThan) >>;
 LessThan_Operator : less_than << ast.PushOperator(types.LessThan) >>;
 NotEqual_Operator : not_equal << ast.PushOperator(types.NotEqual) >>;
 
+Negative_Operator : minus << memory.MakeOperandNegative() >>;
+
 Fact_Open_Divider : parenthesis_open << ast.PushOperator(types.StackDivider) >>;
 Fact_Close_Divider : parenthesis_close << ast.CloseFakeStack() >>;
 
@@ -140,9 +150,9 @@ Fact : Fact_Open_Divider Expr Fact_Close_Divider
   | Cte
   | Id_Index
   | plus Id_Index
-  | minus Id_Index
+  | Negative_Operator Id_Index
   | plus Cte
-  | minus Cte;
+  | Negative_Operator Cte;
 
 Func_Create : id << ast.CreateFuntion($0, false) >>;
 

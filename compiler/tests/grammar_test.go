@@ -17,7 +17,9 @@ func TestTheParserCorrectlyParsesACorrectSample(t *testing.T) {
 		var  x, y, z : int;
 
 		main {
-			print(1 + 2);
+			print("Hello, World");
+			y = 3;
+			x = z + -y;
 		}
 		end`
 
@@ -29,6 +31,9 @@ func TestTheParserCorrectlyParsesACorrectSample(t *testing.T) {
 	if perr != nil {
 		t.Fatalf("parse failed: %v", perr)
 	}
+
+	PrintFunctionMapWithVars(ast.ProgramFunctions)
+	PrintQuadrupleList(ast.QuadrupleList)
 
 	t.Logf("parse OK %#v", tree)
 }
@@ -67,7 +72,7 @@ func TestTheParserCorrectlyParsesAnotherCorrectSample(t *testing.T) {
 
 			while (x < 10) do {
 				print(x);
-				x = x + 1;
+				x = x + p;
 			};
 		}
 
@@ -81,6 +86,9 @@ func TestTheParserCorrectlyParsesAnotherCorrectSample(t *testing.T) {
 	if perr != nil {
 		t.Fatalf("parse failed: %v", perr)
 	}
+
+	PrintFunctionMapWithVars(ast.ProgramFunctions)
+	PrintQuadrupleList(ast.QuadrupleList)
 
 	t.Logf("parse OK %#v", tree)
 }
@@ -198,7 +206,7 @@ func TestASTDetectsAllFunctionsAndVariablesCorrectly(t *testing.T) {
 	}
 
 	PrintFunctionMapWithVars(ast.ProgramFunctions)
-
+	PrintQuadrupleList(ast.QuadrupleList)
 	t.Logf("parse OK %#v", tree)
 }
 
@@ -310,7 +318,7 @@ func TestCorrectlyGeneratesQuadruplesForExpressions(t *testing.T) {
 		var a, b, c, z : int;
 
 		main {
-			z = (a + b) * c;
+			a = a + b + c + z;
 		}
 		end`
 
@@ -341,7 +349,7 @@ func TestCorrectlyGeneratesQuadruplesForExpressionsWithFunctions(t *testing.T) {
 
 			{
 				o = p + q;
-				print(o);
+				print(o, "Hello, World", "Diego Gtz");
 			}
 		];
 

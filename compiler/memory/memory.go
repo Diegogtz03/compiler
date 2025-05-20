@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"compiler/token"
 	"compiler/types"
 )
 
@@ -12,6 +13,8 @@ const (
 	Temp
 	Constant
 )
+
+var ConstantIsNegative = false
 
 var GLOBAL_INT_START = 1000
 var GLOBAL_FLOAT_START = 1200
@@ -35,22 +38,12 @@ var CurrentLocalFloat = 0
 var CurrentTempInt = 0
 var CurrentTempFloat = 0
 var CurrentTempBool = 0
-var CurrentConstantInt = 0
+var CurrentConstantInt = 1
 var CurrentConstantFloat = 0
 var CurrentConstantString = 0
 
-// Global memory
-var GlobalInts = []int{}
-var GlobalFloats = []float64{}
-
-var LocalInts = []int{}
-var LocalFloats = []float64{}
-
-var TempInts = []int{}
-var TempFloats = []float64{}
-var TempBools = []bool{}
-
-var ConstantInts = []int{}
+// Constant memory
+var ConstantInts = []int{-1}
 var ConstantFloats = []float64{}
 var ConstantStrings = []string{}
 
@@ -60,53 +53,31 @@ func AllocateMemory(varType types.Type, memoryType types.MemoryType) int {
 		switch memoryType {
 		case types.Global:
 			CurrentGlobalInt++
-			GlobalInts = append(GlobalInts, -999)
 			return GLOBAL_INT_START + CurrentGlobalInt
 		case types.Local:
 			CurrentLocalInt++
-			LocalInts = append(LocalInts, -999)
 			return LOCAL_INT_START + CurrentLocalInt
 		case types.Temp:
 			CurrentTempInt++
-			TempInts = append(TempInts, -999)
 			return TEMP_INT_START + CurrentTempInt
-		case types.Constant:
-			CurrentConstantInt++
-			ConstantInts = append(ConstantInts, -999)
-			return CONSTANT_INT_START + CurrentConstantInt
 		}
 	case types.Float:
 		switch memoryType {
 		case types.Global:
 			CurrentGlobalFloat++
-			GlobalFloats = append(GlobalFloats, -999.0)
 			return GLOBAL_FLOAT_START + CurrentGlobalFloat
 		case types.Local:
 			CurrentLocalFloat++
-			LocalFloats = append(LocalFloats, -999.0)
 			return LOCAL_FLOAT_START + CurrentLocalFloat
 		case types.Temp:
 			CurrentTempFloat++
-			TempFloats = append(TempFloats, -999.0)
 			return TEMP_FLOAT_START + CurrentTempFloat
-		case types.Constant:
-			CurrentConstantFloat++
-			ConstantFloats = append(ConstantFloats, -999.0)
-			return CONSTANT_FLOAT_START + CurrentConstantFloat
 		}
 	case types.Bool:
 		switch memoryType {
 		case types.Temp:
 			CurrentTempBool++
-			TempBools = append(TempBools, false)
 			return TEMP_BOOL_START + CurrentTempBool
-		}
-	case types.String:
-		switch memoryType {
-		case types.Constant:
-			CurrentConstantString++
-			ConstantStrings = append(ConstantStrings, "")
-			return CONSTANT_STRING_START + CurrentConstantString
 		}
 	}
 	return 0
@@ -146,33 +117,49 @@ func IndexToType(index int) types.Type {
 	return types.Error
 }
 
+func MakeOperandNegative() (int, error) {
+	ConstantIsNegative = true
+	return 0, nil
+}
+
 func ResetLocalMemory() {
 	CurrentLocalInt = 0
 	CurrentLocalFloat = 0
 }
 
-func AssignIntConstant(memoryType types.MemoryType, index int, value int) {
-	switch memoryType {
-	case types.Global:
-		GlobalInts[index-GLOBAL_INT_START] = value
-	case types.Local:
-		LocalInts[index-LOCAL_INT_START] = value
-	case types.Temp:
-		TempInts[index-TEMP_INT_START] = value
-	case types.Constant:
-		ConstantInts[index-CONSTANT_INT_START] = value
+func AssignIntConstant(value interface{}) int {
+	intValue, _ := value.(*token.Token).Int32Value()
+
+	if ConstantIsNegative {
+		intValue = -intValue
+		ConstantIsNegative = false
 	}
+
+	CurrentConstantInt++
+	ConstantInts = append(ConstantInts, int(intValue))
+
+	return CONSTANT_INT_START + CurrentConstantInt
 }
 
-func AssignFloatConstant(memoryType types.MemoryType, index int, value float64) {
-	switch memoryType {
-	case types.Global:
-		GlobalFloats[index-GLOBAL_FLOAT_START] = value
-	case types.Local:
-		LocalFloats[index-LOCAL_FLOAT_START] = value
-	case types.Temp:
-		TempFloats[index-TEMP_FLOAT_START] = value
-	case types.Constant:
-		ConstantFloats[index-CONSTANT_FLOAT_START] = value
+func AssignFloatConstant(value interface{}) int {
+	floatValue, _ := value.(*token.Token).Float64Value()
+
+	if ConstantIsNegative {
+		floatValue = -floatValue
+		ConstantIsNegative = false
 	}
+
+	CurrentConstantFloat++
+	ConstantFloats = append(ConstantFloats, floatValue)
+
+	return CONSTANT_FLOAT_START + CurrentConstantFloat
+}
+
+func AssignStringConstant(value *token.Token) int {
+	strValue := value.CharLiteralValue()
+
+	CurrentConstantString++
+	ConstantStrings = append(ConstantStrings, strValue)
+
+	return CONSTANT_STRING_START + CurrentConstantString
 }

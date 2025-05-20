@@ -4,6 +4,7 @@ import (
 	"compiler/memory"
 	"compiler/types"
 	"compiler/utils"
+	"fmt"
 )
 
 var QuadrupleList []types.Quadruple
@@ -23,7 +24,13 @@ var operatorHierarchy = map[types.Operator]int{
 	types.LessThan:      1,
 	types.GreaterThan:   1,
 	types.Print:         4,
+	types.Goto:          5,
+	types.GotoF:         5,
+	types.GotoT:         5,
 }
+
+// Jump Stack
+var JumpStack = utils.Stack{}
 
 func PushOperator(op types.Operator) (types.Operator, error) {
 	if OperatorStack.IsEmpty() {
@@ -44,8 +51,10 @@ func PushOperator(op types.Operator) (types.Operator, error) {
 	return op, nil
 }
 
-func PushOperand(index int) {
+func PushOperand(index int) (int, error) {
 	OperandStack.Push(index)
+
+	return index, nil
 }
 
 func CloseFakeStack() (types.Operator, error) {
@@ -60,20 +69,13 @@ func CloseFakeStack() (types.Operator, error) {
 	return types.StackDivider, nil
 }
 
-// Todo: adapt for assignment, etc...
 func GenerateQuadruple(op types.Operator) {
-	op2, op1 := OperandStack.Pop(), OperandStack.Pop()
+	fmt.Printf("Generating quadruple for %v\n", op)
+	fmt.Printf("OperandStack: %v\n", OperandStack)
+	fmt.Printf("OperatorStack: %v\n", OperatorStack)
+	fmt.Println("--------------------------------")
 
-	// get types from op1 and op2
-	op1Type := memory.IndexToType(op1)
-	op2Type := memory.IndexToType(op2)
-
-	// check semantics with semantic cube
-	var resultType types.Type = syntaxCube[op1Type][op2Type][op]
-
-	if resultType == types.Error {
-		panic("Error: Invalid operation")
-	}
+	op2, op1, resultType := getOperators(op)
 
 	var quadruple types.Quadruple
 
@@ -84,7 +86,18 @@ func GenerateQuadruple(op types.Operator) {
 			Arg2:   -1,
 			Result: op1,
 		}
+	} else if op == types.Print {
+		quadruple = types.Quadruple{
+			Op:     op,
+			Arg1:   op2,
+			Arg2:   -1,
+			Result: -1,
+		}
 	} else {
+		if resultType == types.Error {
+			panic("Error: Invalid operation")
+		}
+
 		var tempIndex int = memory.AllocateMemory(resultType, types.MemoryType(memory.Global))
 
 		quadruple = types.Quadruple{
@@ -100,6 +113,28 @@ func GenerateQuadruple(op types.Operator) {
 	QuadrupleList = append(QuadrupleList, quadruple)
 }
 
+func getOperators(op types.Operator) (int, int, types.Type) {
+	if op == types.Print {
+		return OperandStack.Pop(), -1, types.Error
+	}
+
+	op1 := OperandStack.Pop()
+	op2 := OperandStack.Pop()
+
+	// get types from op1 and op2
+	op1Type := memory.IndexToType(op1)
+	op2Type := memory.IndexToType(op2)
+
+	// check semantics with semantic cube
+	var resultType types.Type = syntaxCube[op1Type][op2Type][op]
+
+	if resultType == types.Error {
+		panic("Error: Invalid operation")
+	}
+
+	return op1, op2, resultType
+}
+
 func EndExpression() (*types.Operator, error) {
 	// Pop all of the remaining operators from the stack
 	for !OperatorStack.IsEmpty() {
@@ -108,3 +143,24 @@ func EndExpression() (*types.Operator, error) {
 
 	return nil, nil
 }
+
+func GenerateGoto(op types.Operator) {
+	JumpStack.Push(len(QuadrupleList) - 1)
+
+	PushOperator(op)
+}
+
+func PopJumpStack() {
+	quadrupleIndex := JumpStack.Pop()
+
+	quadruple := QuadrupleList[quadrupleIndex]
+
+	quadruple.Result = len(QuadrupleList)
+
+	QuadrupleList[quadrupleIndex] = quadruple
+}
+
+// TODO:
+// - Add constants to memory (negatives?)
+// - Add if statement
+// - Add while statement

@@ -107,9 +107,25 @@ var TransTab = TransitionTable{
 	// S3
 	func(r rune) int {
 		switch {
+		case r == 32: // [' ',' ']
+			return 3
+		case r == 33: // ['!','!']
+			return 3
 		case r == 34: // ['"','"']
 			return 31
+		case r == 44: // [',',',']
+			return 3
+		case r == 45: // ['-','-']
+			return 3
+		case r == 46: // ['.','.']
+			return 3
+		case 48 <= r && r <= 57: // ['0','9']
+			return 3
+		case r == 63: // ['?','?']
+			return 3
 		case 65 <= r && r <= 90: // ['A','Z']
+			return 3
+		case r == 95: // ['_','_']
 			return 3
 		case 97 <= r && r <= 122: // ['a','z']
 			return 3
