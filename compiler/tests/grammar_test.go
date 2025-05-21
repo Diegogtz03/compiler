@@ -17,9 +17,13 @@ func TestTheParserCorrectlyParsesACorrectSample(t *testing.T) {
 		var  x, y, z : int;
 
 		main {
-			print("Hello, World");
-			y = 3;
-			x = z + -y;
+			while (x < 10) do {
+				print(x);
+
+				if (x != 5) {
+					x = 10;
+				};
+			};
 		}
 		end`
 

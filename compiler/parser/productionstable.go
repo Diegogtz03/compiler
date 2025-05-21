@@ -365,30 +365,100 @@ var productionsTable = ProdTab{
 		},
 	},
 	ProdTabEntry{
-		String: `Cycle : while parenthesis_open Expr parenthesis_close do Body semicolon	<<  >>`,
-		Id:         "Cycle",
+		String: `Cycle_End : semicolon	<< ast.CyclePopJumpStack() >>`,
+		Id:         "Cycle_End",
 		NTType:     21,
 		Index:      34,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.CyclePopJumpStack()
+		},
+	},
+	ProdTabEntry{
+		String: `Cycle : while GotoF_Generation Expr Parenthesis_Close_Exp do Body Cycle_End	<<  >>`,
+		Id:         "Cycle",
+		NTType:     22,
+		Index:      35,
 		NumSymbols: 7,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
 		},
 	},
 	ProdTabEntry{
-		String: `Condition : if parenthesis_open Expr parenthesis_close Body semicolon	<<  >>`,
+		String: `GotoF_Generation : parenthesis_open	<< ast.PushOperator(types.GotoF) >>`,
+		Id:         "GotoF_Generation",
+		NTType:     23,
+		Index:      36,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.PushOperator(types.GotoF)
+		},
+	},
+	ProdTabEntry{
+		String: `Goto_Generation : else	<< ast.PopJumpStack(true) >>`,
+		Id:         "Goto_Generation",
+		NTType:     24,
+		Index:      37,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.PopJumpStack(true)
+		},
+	},
+	ProdTabEntry{
+		String: `Goto_With_Jump : Goto_Generation	<< ast.PushOperator(types.Goto) >>`,
+		Id:         "Goto_With_Jump",
+		NTType:     25,
+		Index:      38,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.PushOperator(types.Goto)
+		},
+	},
+	ProdTabEntry{
+		String: `Jump_End_With_Skip : semicolon	<< ast.PopJumpStack(true) >>`,
+		Id:         "Jump_End_With_Skip",
+		NTType:     26,
+		Index:      39,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.PopJumpStack(true)
+		},
+	},
+	ProdTabEntry{
+		String: `Jump_End_Without_Skip : semicolon	<< ast.PopJumpStack(false) >>`,
+		Id:         "Jump_End_Without_Skip",
+		NTType:     27,
+		Index:      40,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.PopJumpStack(false)
+		},
+	},
+	ProdTabEntry{
+		String: `Parenthesis_Close_Exp : parenthesis_close	<< ast.EndExpression() >>`,
+		Id:         "Parenthesis_Close_Exp",
+		NTType:     28,
+		Index:      41,
+		NumSymbols: 1,
+		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
+			return ast.EndExpression()
+		},
+	},
+	ProdTabEntry{
+		String: `Condition : if GotoF_Generation Expr Parenthesis_Close_Exp Body Jump_End_Without_Skip	<<  >>`,
 		Id:         "Condition",
-		NTType:     22,
-		Index:      35,
+		NTType:     29,
+		Index:      42,
 		NumSymbols: 6,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
 		},
 	},
 	ProdTabEntry{
-		String: `Condition : if parenthesis_open Expr parenthesis_close Body else Body semicolon	<<  >>`,
+		String: `Condition : if GotoF_Generation Expr Parenthesis_Close_Exp Body Goto_With_Jump Body Jump_End_With_Skip	<<  >>`,
 		Id:         "Condition",
-		NTType:     22,
-		Index:      36,
+		NTType:     29,
+		Index:      43,
 		NumSymbols: 8,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -397,8 +467,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `F_call : id parenthesis_open parenthesis_close semicolon	<<  >>`,
 		Id:         "F_call",
-		NTType:     23,
-		Index:      37,
+		NTType:     30,
+		Index:      44,
 		NumSymbols: 4,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -407,8 +477,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `F_call : id parenthesis_open Expr F_call_PR parenthesis_close semicolon	<<  >>`,
 		Id:         "F_call",
-		NTType:     23,
-		Index:      38,
+		NTType:     30,
+		Index:      45,
 		NumSymbols: 6,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -417,8 +487,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `F_call_PR : comma Expr F_call_PR	<<  >>`,
 		Id:         "F_call_PR",
-		NTType:     24,
-		Index:      39,
+		NTType:     31,
+		Index:      46,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -427,8 +497,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `F_call_PR : empty	<<  >>`,
 		Id:         "F_call_PR",
-		NTType:     24,
-		Index:      40,
+		NTType:     31,
+		Index:      47,
 		NumSymbols: 0,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return nil, nil
@@ -437,8 +507,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Cte : myint	<< ast.PushOperand(memory.AssignIntConstant(X[0])) >>`,
 		Id:         "Cte",
-		NTType:     25,
-		Index:      41,
+		NTType:     32,
+		Index:      48,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperand(memory.AssignIntConstant(X[0]))
@@ -447,8 +517,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Cte : myfloat	<< ast.PushOperand(memory.AssignFloatConstant(X[0])) >>`,
 		Id:         "Cte",
-		NTType:     25,
-		Index:      42,
+		NTType:     32,
+		Index:      49,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperand(memory.AssignFloatConstant(X[0]))
@@ -457,8 +527,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Expr : Exp	<<  >>`,
 		Id:         "Expr",
-		NTType:     26,
-		Index:      43,
+		NTType:     33,
+		Index:      50,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -467,8 +537,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Expr : Exp GreaterThan_Operator Exp	<<  >>`,
 		Id:         "Expr",
-		NTType:     26,
-		Index:      44,
+		NTType:     33,
+		Index:      51,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -477,8 +547,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Expr : Exp LessThan_Operator Exp	<<  >>`,
 		Id:         "Expr",
-		NTType:     26,
-		Index:      45,
+		NTType:     33,
+		Index:      52,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -487,8 +557,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Expr : Exp NotEqual_Operator Exp	<<  >>`,
 		Id:         "Expr",
-		NTType:     26,
-		Index:      46,
+		NTType:     33,
+		Index:      53,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -497,8 +567,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Exp : Term	<<  >>`,
 		Id:         "Exp",
-		NTType:     27,
-		Index:      47,
+		NTType:     34,
+		Index:      54,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -507,8 +577,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Exp : Term Plus_Operator Exp	<<  >>`,
 		Id:         "Exp",
-		NTType:     27,
-		Index:      48,
+		NTType:     34,
+		Index:      55,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -517,8 +587,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Exp : Term Minus_Operator Exp	<<  >>`,
 		Id:         "Exp",
-		NTType:     27,
-		Index:      49,
+		NTType:     34,
+		Index:      56,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -527,8 +597,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Term : Fact	<<  >>`,
 		Id:         "Term",
-		NTType:     28,
-		Index:      50,
+		NTType:     35,
+		Index:      57,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -537,8 +607,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Term : Fact Mult_Operator Term	<<  >>`,
 		Id:         "Term",
-		NTType:     28,
-		Index:      51,
+		NTType:     35,
+		Index:      58,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -547,8 +617,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Term : Fact Div_Operator Term	<<  >>`,
 		Id:         "Term",
-		NTType:     28,
-		Index:      52,
+		NTType:     35,
+		Index:      59,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -557,8 +627,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Id_Index : id	<< ast.GetVarIndex(X[0]) >>`,
 		Id:         "Id_Index",
-		NTType:     29,
-		Index:      53,
+		NTType:     36,
+		Index:      60,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.GetVarIndex(X[0])
@@ -567,8 +637,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Plus_Operator : plus	<< ast.PushOperator(types.Add) >>`,
 		Id:         "Plus_Operator",
-		NTType:     30,
-		Index:      54,
+		NTType:     37,
+		Index:      61,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.Add)
@@ -577,8 +647,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Minus_Operator : minus	<< ast.PushOperator(types.Sub) >>`,
 		Id:         "Minus_Operator",
-		NTType:     31,
-		Index:      55,
+		NTType:     38,
+		Index:      62,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.Sub)
@@ -587,8 +657,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Mult_Operator : mult	<< ast.PushOperator(types.Mul) >>`,
 		Id:         "Mult_Operator",
-		NTType:     32,
-		Index:      56,
+		NTType:     39,
+		Index:      63,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.Mul)
@@ -597,8 +667,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Div_Operator : div	<< ast.PushOperator(types.Div) >>`,
 		Id:         "Div_Operator",
-		NTType:     33,
-		Index:      57,
+		NTType:     40,
+		Index:      64,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.Div)
@@ -607,8 +677,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `GreaterThan_Operator : greater_than	<< ast.PushOperator(types.GreaterThan) >>`,
 		Id:         "GreaterThan_Operator",
-		NTType:     34,
-		Index:      58,
+		NTType:     41,
+		Index:      65,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.GreaterThan)
@@ -617,8 +687,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `LessThan_Operator : less_than	<< ast.PushOperator(types.LessThan) >>`,
 		Id:         "LessThan_Operator",
-		NTType:     35,
-		Index:      59,
+		NTType:     42,
+		Index:      66,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.LessThan)
@@ -627,8 +697,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `NotEqual_Operator : not_equal	<< ast.PushOperator(types.NotEqual) >>`,
 		Id:         "NotEqual_Operator",
-		NTType:     36,
-		Index:      60,
+		NTType:     43,
+		Index:      67,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.NotEqual)
@@ -637,8 +707,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Negative_Operator : minus	<< memory.MakeOperandNegative() >>`,
 		Id:         "Negative_Operator",
-		NTType:     37,
-		Index:      61,
+		NTType:     44,
+		Index:      68,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return memory.MakeOperandNegative()
@@ -647,8 +717,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact_Open_Divider : parenthesis_open	<< ast.PushOperator(types.StackDivider) >>`,
 		Id:         "Fact_Open_Divider",
-		NTType:     38,
-		Index:      62,
+		NTType:     45,
+		Index:      69,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.PushOperator(types.StackDivider)
@@ -657,8 +727,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact_Close_Divider : parenthesis_close	<< ast.CloseFakeStack() >>`,
 		Id:         "Fact_Close_Divider",
-		NTType:     39,
-		Index:      63,
+		NTType:     46,
+		Index:      70,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.CloseFakeStack()
@@ -667,8 +737,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : Fact_Open_Divider Expr Fact_Close_Divider	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      64,
+		NTType:     47,
+		Index:      71,
 		NumSymbols: 3,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -677,8 +747,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : Cte	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      65,
+		NTType:     47,
+		Index:      72,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -687,8 +757,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : Id_Index	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      66,
+		NTType:     47,
+		Index:      73,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -697,8 +767,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : plus Id_Index	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      67,
+		NTType:     47,
+		Index:      74,
 		NumSymbols: 2,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -707,8 +777,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : Negative_Operator Id_Index	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      68,
+		NTType:     47,
+		Index:      75,
 		NumSymbols: 2,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -717,8 +787,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : plus Cte	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      69,
+		NTType:     47,
+		Index:      76,
 		NumSymbols: 2,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -727,8 +797,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Fact : Negative_Operator Cte	<<  >>`,
 		Id:         "Fact",
-		NTType:     40,
-		Index:      70,
+		NTType:     47,
+		Index:      77,
 		NumSymbols: 2,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -737,8 +807,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Func_Create : id	<< ast.CreateFuntion(X[0], false) >>`,
 		Id:         "Func_Create",
-		NTType:     41,
-		Index:      71,
+		NTType:     48,
+		Index:      78,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.CreateFuntion(X[0], false)
@@ -747,8 +817,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Func_Close : semicolon	<< ast.ResetToGlobalScope() >>`,
 		Id:         "Func_Close",
-		NTType:     42,
-		Index:      72,
+		NTType:     49,
+		Index:      79,
 		NumSymbols: 1,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return ast.ResetToGlobalScope()
@@ -757,8 +827,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Body bracket_close Func_Close	<<  >>`,
 		Id:         "Funcs",
-		NTType:     43,
-		Index:      73,
+		NTType:     50,
+		Index:      80,
 		NumSymbols: 8,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -767,8 +837,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Vars Body bracket_close Func_Close	<<  >>`,
 		Id:         "Funcs",
-		NTType:     43,
-		Index:      74,
+		NTType:     50,
+		Index:      81,
 		NumSymbols: 9,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -777,8 +847,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Funcs : void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Body bracket_close Func_Close	<<  >>`,
 		Id:         "Funcs",
-		NTType:     43,
-		Index:      75,
+		NTType:     50,
+		Index:      82,
 		NumSymbols: 12,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -787,8 +857,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Funcs : void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Vars Body bracket_close Func_Close	<<  >>`,
 		Id:         "Funcs",
-		NTType:     43,
-		Index:      76,
+		NTType:     50,
+		Index:      83,
 		NumSymbols: 13,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -797,8 +867,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Funcs_PR : comma Enqueue_Vars two_dots Declare_Vars Funcs_PR	<<  >>`,
 		Id:         "Funcs_PR",
-		NTType:     44,
-		Index:      77,
+		NTType:     51,
+		Index:      84,
 		NumSymbols: 5,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return X[0], nil
@@ -807,8 +877,8 @@ var productionsTable = ProdTab{
 	ProdTabEntry{
 		String: `Funcs_PR : empty	<<  >>`,
 		Id:         "Funcs_PR",
-		NTType:     44,
-		Index:      78,
+		NTType:     51,
+		Index:      85,
 		NumSymbols: 0,
 		ReduceFunc: func(X []Attrib, C interface{}) (Attrib, error) {
 			return nil, nil

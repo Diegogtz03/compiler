@@ -42,6 +42,12 @@ func PrintQuadrupleList(quadrupleList []types.Quadruple) {
 			opString = "StackDivider"
 		case types.ErrorOperator:
 			opString = "ErrorOperator"
+		case types.GotoF:
+			opString = "GotoF"
+		case types.Goto:
+			opString = "Goto"
+		case types.GotoT:
+			opString = "GotoT"
 		default:
 			opString = "Unknown"
 		}

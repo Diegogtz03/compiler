@@ -104,10 +104,20 @@ Assign : Id_Index Assign_Operator Exp semicolon;
 
 Assign_Operator : equal << ast.PushOperator(types.Assign) >>;
 
-Cycle : while parenthesis_open Expr parenthesis_close do Body semicolon;
+Cycle_End : semicolon << ast.CyclePopJumpStack() >>;
 
-Condition : if parenthesis_open Expr parenthesis_close Body semicolon
-  | if parenthesis_open Expr parenthesis_close Body else Body semicolon;
+Cycle : while GotoF_Generation Expr Parenthesis_Close_Exp do Body Cycle_End;
+
+GotoF_Generation : parenthesis_open << ast.PushOperator(types.GotoF) >>;
+Goto_Generation : else << ast.PopJumpStack(true) >>;
+Goto_With_Jump : Goto_Generation << ast.PushOperator(types.Goto) >>;
+Jump_End_With_Skip : semicolon << ast.PopJumpStack(true) >>;
+Jump_End_Without_Skip : semicolon << ast.PopJumpStack(false) >>;
+
+Parenthesis_Close_Exp : parenthesis_close << ast.EndExpression() >>;
+
+Condition : if GotoF_Generation Expr Parenthesis_Close_Exp Body Jump_End_Without_Skip
+  | if GotoF_Generation Expr Parenthesis_Close_Exp Body Goto_With_Jump Body Jump_End_With_Skip;
 
 F_call : id parenthesis_open parenthesis_close semicolon
   | id parenthesis_open Expr F_call_PR parenthesis_close semicolon;
