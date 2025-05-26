@@ -43,4 +43,9 @@ const (
 	Goto
 	GotoF
 	GotoT
+	GoSub
+	Era
+	Parameter
+	EndFunc
+	Terminate
 )

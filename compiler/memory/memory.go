@@ -52,32 +52,39 @@ func AllocateMemory(varType types.Type, memoryType types.MemoryType) int {
 	case types.Int:
 		switch memoryType {
 		case types.Global:
+			index := GLOBAL_INT_START + CurrentGlobalInt
 			CurrentGlobalInt++
-			return GLOBAL_INT_START + CurrentGlobalInt
+			return index
 		case types.Local:
+			index := LOCAL_INT_START + CurrentLocalInt
 			CurrentLocalInt++
-			return LOCAL_INT_START + CurrentLocalInt
+			return index
 		case types.Temp:
+			index := TEMP_INT_START + CurrentTempInt
 			CurrentTempInt++
-			return TEMP_INT_START + CurrentTempInt
+			return index
 		}
 	case types.Float:
 		switch memoryType {
 		case types.Global:
+			index := GLOBAL_FLOAT_START + CurrentGlobalFloat
 			CurrentGlobalFloat++
-			return GLOBAL_FLOAT_START + CurrentGlobalFloat
+			return index
 		case types.Local:
+			index := LOCAL_FLOAT_START + CurrentLocalFloat
 			CurrentLocalFloat++
-			return LOCAL_FLOAT_START + CurrentLocalFloat
+			return index
 		case types.Temp:
+			index := TEMP_FLOAT_START + CurrentTempFloat
 			CurrentTempFloat++
-			return TEMP_FLOAT_START + CurrentTempFloat
+			return index
 		}
 	case types.Bool:
 		switch memoryType {
 		case types.Temp:
+			index := TEMP_BOOL_START + CurrentTempBool
 			CurrentTempBool++
-			return TEMP_BOOL_START + CurrentTempBool
+			return index
 		}
 	}
 	return 0
@@ -111,10 +118,44 @@ func IndexToType(index int) types.Type {
 	if index >= CONSTANT_FLOAT_START && index < CONSTANT_STRING_START {
 		return types.Float
 	}
-	if index >= CONSTANT_STRING_START && index < CONSTANT_STRING_START {
+	if index >= CONSTANT_STRING_START {
 		return types.String
 	}
 	return types.Error
+}
+
+func IndexToTypeAndMemoryType(index int) (types.Type, types.MemoryType) {
+	if index >= GLOBAL_INT_START && index < GLOBAL_FLOAT_START {
+		return types.Int, types.Global
+	}
+	if index >= GLOBAL_FLOAT_START && index < GLOBAL_FLOAT_START {
+		return types.Float, types.Global
+	}
+	if index >= LOCAL_INT_START && index < LOCAL_FLOAT_START {
+		return types.Int, types.Local
+	}
+	if index >= LOCAL_FLOAT_START && index < LOCAL_FLOAT_START {
+		return types.Float, types.Local
+	}
+	if index >= TEMP_INT_START && index < TEMP_FLOAT_START {
+		return types.Int, types.Temp
+	}
+	if index >= TEMP_FLOAT_START && index < TEMP_FLOAT_START {
+		return types.Float, types.Temp
+	}
+	if index >= TEMP_BOOL_START && index < TEMP_BOOL_START {
+		return types.Bool, types.Temp
+	}
+	if index >= CONSTANT_INT_START && index < CONSTANT_FLOAT_START {
+		return types.Int, types.Constant
+	}
+	if index >= CONSTANT_FLOAT_START && index < CONSTANT_STRING_START {
+		return types.Float, types.Constant
+	}
+	if index >= CONSTANT_STRING_START {
+		return types.String, types.Constant
+	}
+	return types.Error, types.Global
 }
 
 func MakeOperandNegative() (int, error) {
@@ -125,6 +166,9 @@ func MakeOperandNegative() (int, error) {
 func ResetLocalMemory() {
 	CurrentLocalInt = 0
 	CurrentLocalFloat = 0
+	CurrentTempInt = 0
+	CurrentTempFloat = 0
+	CurrentTempBool = 0
 }
 
 func AssignIntConstant(value interface{}) int {
@@ -135,10 +179,10 @@ func AssignIntConstant(value interface{}) int {
 		ConstantIsNegative = false
 	}
 
+	index := CONSTANT_INT_START + CurrentConstantInt
 	CurrentConstantInt++
 	ConstantInts = append(ConstantInts, int(intValue))
-
-	return CONSTANT_INT_START + CurrentConstantInt
+	return index
 }
 
 func AssignFloatConstant(value interface{}) int {
@@ -149,17 +193,17 @@ func AssignFloatConstant(value interface{}) int {
 		ConstantIsNegative = false
 	}
 
+	index := CONSTANT_FLOAT_START + CurrentConstantFloat
 	CurrentConstantFloat++
 	ConstantFloats = append(ConstantFloats, floatValue)
-
-	return CONSTANT_FLOAT_START + CurrentConstantFloat
+	return index
 }
 
 func AssignStringConstant(value *token.Token) int {
 	strValue := value.CharLiteralValue()
 
+	index := CONSTANT_STRING_START + CurrentConstantString
 	CurrentConstantString++
 	ConstantStrings = append(ConstantStrings, strValue)
-
-	return CONSTANT_STRING_START + CurrentConstantString
+	return index
 }

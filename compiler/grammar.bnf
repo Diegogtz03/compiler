@@ -56,8 +56,12 @@ Start : Programa ;
 
 Program_Create : id << ast.CreateFuntion($0, true) >>;
 
-Programa : program Program_Create semicolon Vars Programa_PR main Body end
-  | program Program_Create semicolon Programa_PR main Body end;
+Main_Call : program << ast.MainGoTo() >>;
+Main_Call_Fill : main << ast.FillMainGoTo() >>;
+Terminate_Program : end << ast.GenerateTerminate() >>;
+
+Programa : Main_Call Program_Create semicolon Vars Programa_PR Main_Call_Fill Body Terminate_Program
+  | Main_Call Program_Create semicolon Programa_PR Main_Call_Fill Body Terminate_Program;
 
 Programa_PR : Funcs Programa_PR
   | empty; 
@@ -106,7 +110,9 @@ Assign_Operator : equal << ast.PushOperator(types.Assign) >>;
 
 Cycle_End : semicolon << ast.CyclePopJumpStack() >>;
 
-Cycle : while GotoF_Generation Expr Parenthesis_Close_Exp do Body Cycle_End;
+Cycle : while Cycle_Stack_Push Expr Parenthesis_Close_Exp do Body Cycle_End;
+
+Cycle_Stack_Push: GotoF_Generation << ast.PushJumpStack() >>;
 
 GotoF_Generation : parenthesis_open << ast.PushOperator(types.GotoF) >>;
 Goto_Generation : else << ast.PopJumpStack(true) >>;
@@ -119,10 +125,14 @@ Parenthesis_Close_Exp : parenthesis_close << ast.EndExpression() >>;
 Condition : if GotoF_Generation Expr Parenthesis_Close_Exp Body Jump_End_Without_Skip
   | if GotoF_Generation Expr Parenthesis_Close_Exp Body Goto_With_Jump Body Jump_End_With_Skip;
 
-F_call : id parenthesis_open parenthesis_close semicolon
-  | id parenthesis_open Expr F_call_PR parenthesis_close semicolon;
+F_call_create : id << ast.FunctionCallCreate($0) >>;
+F_call_param_fill : Expr << ast.FunctionCallFill() >>;
+F_call_verify : parenthesis_close << ast.VerifyParamFill() >>;
 
-F_call_PR : comma Expr F_call_PR 
+F_call : F_call_create parenthesis_open F_call_verify semicolon
+  | F_call_create parenthesis_open F_call_param_fill F_call_PR F_call_verify semicolon;
+
+F_call_PR : comma F_call_param_fill F_call_PR 
   | empty ;
 
 Cte : myint << ast.PushOperand(memory.AssignIntConstant($0)) >>
@@ -167,11 +177,14 @@ Fact : Fact_Open_Divider Expr Fact_Close_Divider
 Func_Create : id << ast.CreateFuntion($0, false) >>;
 
 Func_Close : semicolon << ast.ResetToGlobalScope() >>;
+Func_End_Close : Func_Close << ast.EndFunction() >>;
 
-Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Body bracket_close Func_Close
-  | void Func_Create parenthesis_open parenthesis_close bracket_open Vars Body bracket_close Func_Close
-  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Body bracket_close Func_Close
-  | void Func_Create parenthesis_open Enqueue_Vars two_dots Declare_Vars Funcs_PR parenthesis_close bracket_open Vars Body bracket_close Func_Close;
+Func_Parameter_Declare: two_dots << ast.InsertingParameter() >>;
 
-Funcs_PR : comma Enqueue_Vars two_dots Declare_Vars Funcs_PR
+Funcs : void Func_Create parenthesis_open parenthesis_close bracket_open Body bracket_close Func_End_Close
+  | void Func_Create parenthesis_open parenthesis_close bracket_open Vars Body bracket_close Func_End_Close
+  | void Func_Create parenthesis_open Enqueue_Vars Func_Parameter_Declare Declare_Vars Funcs_PR parenthesis_close bracket_open Body bracket_close Func_End_Close
+  | void Func_Create parenthesis_open Enqueue_Vars Func_Parameter_Declare Declare_Vars Funcs_PR parenthesis_close bracket_open Vars Body bracket_close Func_End_Close;
+
+Funcs_PR : comma Enqueue_Vars Func_Parameter_Declare Declare_Vars Funcs_PR
   | empty ;

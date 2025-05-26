@@ -22,6 +22,9 @@ var varsQueue = utils.Queue{}
 // Variable that keeps track of the current type of the variable to be used
 var CurrentType types.Type = types.Error
 
+// Tells us if we need to insert this as a parameter in the function signature
+var IsParameter bool = false
+
 // Syntax cube to validate expression types and correct type assignments
 var syntaxCube = map[types.Type]map[types.Type]map[types.Operator]types.Type{
 	types.Int: {
@@ -132,6 +135,12 @@ func SetCurrentType(varType types.Type) (types.Type, error) {
 	return varType, nil
 }
 
+func InsertingParameter() (interface{}, error) {
+	IsParameter = true
+
+	return nil, nil
+}
+
 func AddVarsToTable(varType types.Type) (*Variable, error) {
 	var memoryType types.MemoryType
 
@@ -163,6 +172,16 @@ func AddVarsToTable(varType types.Type) (*Variable, error) {
 		}
 
 		ProgramFunctions[CurrentModule].Vars[id] = newVar
+
+		if IsParameter {
+			fmt.Println("Inserting parameter: " + id)
+			currentFunction := ProgramFunctions[CurrentModule]
+			currentFunction.Params.Order = append(currentFunction.Params.Order, varType)
+			currentFunction.Params.Signature = append(currentFunction.Params.Signature, index)
+			ProgramFunctions[CurrentModule] = currentFunction
+
+			IsParameter = false
+		}
 	}
 
 	return nil, nil

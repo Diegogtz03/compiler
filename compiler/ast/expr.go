@@ -14,19 +14,23 @@ var OperandStack = utils.Stack{}      // int (indexes)
 
 var operatorHierarchy = map[types.Operator]int{
 	types.ErrorOperator: 0,
-	types.StackDivider:  10,
-	types.Assign:        10,
-	types.Add:           3,
-	types.Sub:           3,
-	types.Mul:           2,
-	types.Div:           2,
-	types.NotEqual:      1,
-	types.LessThan:      1,
-	types.GreaterThan:   1,
-	types.Print:         4,
-	types.Goto:          4,
-	types.GotoF:         4,
-	types.GotoT:         4,
+	types.StackDivider:  4,
+	types.Assign:        4,
+	types.Add:           2,
+	types.Sub:           2,
+	types.Mul:           1,
+	types.Div:           1,
+	types.NotEqual:      2,
+	types.LessThan:      2,
+	types.GreaterThan:   2,
+	types.Print:         3,
+	types.Goto:          3,
+	types.GotoF:         3,
+	types.GotoT:         3,
+
+	types.Era:       4,
+	types.Parameter: 3,
+	types.GoSub:     4,
 }
 
 // Jump Stack
@@ -70,16 +74,16 @@ func CloseFakeStack() (types.Operator, error) {
 }
 
 func GenerateQuadruple(op types.Operator) {
-	fmt.Printf("Generating quadruple for %v\n", op)
-	fmt.Printf("OperandStack: %v\n", OperandStack)
-	fmt.Printf("OperatorStack: %v\n", OperatorStack)
+	// fmt.Printf("Generating quadruple for %v\n", op)
+	// fmt.Printf("OperandStack: %v\n", OperandStack)
+	// fmt.Printf("OperatorStack: %v\n", OperatorStack)
 
 	op2, op1, resultType := getOperators(op)
 
-	fmt.Printf("op2: %v\n", op2)
-	fmt.Printf("op1: %v\n", op1)
-	fmt.Printf("resultType: %v\n", resultType)
-	fmt.Println("--------------------------------")
+	// fmt.Printf("op2: %v\n", op2)
+	// fmt.Printf("op1: %v\n", op1)
+	// fmt.Printf("resultType: %v\n", resultType)
+	// fmt.Println("--------------------------------")
 
 	var quadruple types.Quadruple
 
@@ -107,7 +111,11 @@ func GenerateQuadruple(op types.Operator) {
 
 		JumpStack.Push(len(QuadrupleList))
 	} else if op == types.GotoF {
-		fmt.Printf("GotoFFFFF\n")
+		// Check if op2 is a bool
+		if memory.IndexToType(op2) != types.Bool {
+			panic("Error: argument must be a bool")
+		}
+
 		quadruple = types.Quadruple{
 			Op:     op,
 			Arg1:   op2,
@@ -121,13 +129,15 @@ func GenerateQuadruple(op types.Operator) {
 			panic("Error: Invalid operation")
 		}
 
-		memoryType := types.MemoryType(memory.Global)
+		// memoryType := types.MemoryType(memory.Global)
 
-		if GlobalProgramName != CurrentModule {
-			memoryType = types.MemoryType(memory.Local)
-		} else if resultType == types.Bool {
-			memoryType = types.MemoryType(memory.Temp)
-		}
+		// if GlobalProgramName != CurrentModule {
+		// 	memoryType = types.MemoryType(memory.Local)
+		// } else if resultType == types.Bool {
+		// 	memoryType = types.MemoryType(memory.Temp)
+		// }
+
+		memoryType := types.MemoryType(memory.Temp)
 
 		var tempIndex int = memory.AllocateMemory(resultType, memoryType)
 
@@ -142,6 +152,12 @@ func GenerateQuadruple(op types.Operator) {
 	}
 
 	QuadrupleList = append(QuadrupleList, quadruple)
+}
+
+// Used for while statement
+func PushJumpStack() (int, error) {
+	JumpStack.Push(len(QuadrupleList))
+	return len(QuadrupleList), nil
 }
 
 func getOperators(op types.Operator) (int, int, types.Type) {
@@ -207,12 +223,64 @@ func CyclePopJumpStack() (int, error) {
 	quadruple.Result = len(QuadrupleList) + 1
 	QuadrupleList[quadrupleIndex] = quadruple
 
+	fmt.Printf("QuadrupleList: %v\n", QuadrupleList)
+
 	// Generate quadruple for Goto at end of cycle
 	quadruple = types.Quadruple{
 		Op:     types.Goto,
 		Arg1:   -1,
 		Arg2:   -1,
-		Result: quadrupleIndex - 1,
+		Result: JumpStack.Pop(),
+	}
+
+	QuadrupleList = append(QuadrupleList, quadruple)
+
+	return 0, nil
+}
+
+func MainGoTo() (int, error) {
+	quadruple := types.Quadruple{
+		Op:     types.Goto,
+		Arg1:   -1,
+		Arg2:   -1,
+		Result: -1,
+	}
+
+	JumpStack.Push(len(QuadrupleList))
+
+	QuadrupleList = append(QuadrupleList, quadruple)
+
+	return 0, nil
+}
+
+func FillMainGoTo() (int, error) {
+	quadrupleIndex := JumpStack.Pop()
+	quadruple := QuadrupleList[quadrupleIndex]
+	quadruple.Result = len(QuadrupleList)
+	QuadrupleList[quadrupleIndex] = quadruple
+
+	return 0, nil
+}
+
+func GenerateTerminate() (int, error) {
+	quadruple := types.Quadruple{
+		Op:     types.Terminate,
+		Arg1:   -1,
+		Arg2:   -1,
+		Result: -1,
+	}
+
+	QuadrupleList = append(QuadrupleList, quadruple)
+
+	return 0, nil
+}
+
+func EndFunction() (int, error) {
+	quadruple := types.Quadruple{
+		Op:     types.EndFunc,
+		Arg1:   -1,
+		Arg2:   -1,
+		Result: -1,
 	}
 
 	QuadrupleList = append(QuadrupleList, quadruple)
