@@ -124,7 +124,7 @@ func TestCorrectlyGeneratesQuadruplesForWhileStatement(t *testing.T) {
 		main {
 			print(x);
 
-			while (x != (x * 2)) do {
+			while (x != y + 1) do {
 				x = x + 1;
 			};
 		}

@@ -94,22 +94,22 @@ func IndexToType(index int) types.Type {
 	if index >= GLOBAL_INT_START && index < GLOBAL_FLOAT_START {
 		return types.Int
 	}
-	if index >= GLOBAL_FLOAT_START && index < GLOBAL_FLOAT_START {
+	if index >= GLOBAL_FLOAT_START && index < LOCAL_INT_START {
 		return types.Float
 	}
 	if index >= LOCAL_INT_START && index < LOCAL_FLOAT_START {
 		return types.Int
 	}
-	if index >= LOCAL_FLOAT_START && index < LOCAL_FLOAT_START {
+	if index >= LOCAL_FLOAT_START && index < TEMP_INT_START {
 		return types.Float
 	}
 	if index >= TEMP_INT_START && index < TEMP_FLOAT_START {
 		return types.Int
 	}
-	if index >= TEMP_FLOAT_START && index < TEMP_FLOAT_START {
+	if index >= TEMP_FLOAT_START && index < TEMP_BOOL_START {
 		return types.Float
 	}
-	if index >= TEMP_BOOL_START && index < TEMP_BOOL_START {
+	if index >= TEMP_BOOL_START && index < CONSTANT_INT_START {
 		return types.Bool
 	}
 	if index >= CONSTANT_INT_START && index < CONSTANT_FLOAT_START {
@@ -128,22 +128,22 @@ func IndexToTypeAndMemoryType(index int) (types.Type, types.MemoryType) {
 	if index >= GLOBAL_INT_START && index < GLOBAL_FLOAT_START {
 		return types.Int, types.Global
 	}
-	if index >= GLOBAL_FLOAT_START && index < GLOBAL_FLOAT_START {
+	if index >= GLOBAL_FLOAT_START && index < LOCAL_INT_START {
 		return types.Float, types.Global
 	}
 	if index >= LOCAL_INT_START && index < LOCAL_FLOAT_START {
 		return types.Int, types.Local
 	}
-	if index >= LOCAL_FLOAT_START && index < LOCAL_FLOAT_START {
+	if index >= LOCAL_FLOAT_START && index < TEMP_INT_START {
 		return types.Float, types.Local
 	}
 	if index >= TEMP_INT_START && index < TEMP_FLOAT_START {
 		return types.Int, types.Temp
 	}
-	if index >= TEMP_FLOAT_START && index < TEMP_FLOAT_START {
+	if index >= TEMP_FLOAT_START && index < TEMP_BOOL_START {
 		return types.Float, types.Temp
 	}
-	if index >= TEMP_BOOL_START && index < TEMP_BOOL_START {
+	if index >= TEMP_BOOL_START && index < CONSTANT_INT_START {
 		return types.Bool, types.Temp
 	}
 	if index >= CONSTANT_INT_START && index < CONSTANT_FLOAT_START {

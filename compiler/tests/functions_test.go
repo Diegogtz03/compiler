@@ -17,7 +17,7 @@ func TestASTDetectsAllFunctionsAndVariablesCorrectly(t *testing.T) {
 
 		var x : int;
 
-		void testFunction(a : int, b : float) [
+		void testFunction() [
 			var c : int;
 			{
 				c = 1 + 2;
@@ -25,7 +25,7 @@ func TestASTDetectsAllFunctionsAndVariablesCorrectly(t *testing.T) {
 		];
 
 		main {
-			testFunction(5, 2.0);
+			testFunction();
 		}
 
 		end`

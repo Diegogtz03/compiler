@@ -117,6 +117,7 @@ func FunctionCallCreate(name interface{}) (int, error) {
 }
 
 func FunctionCallFill() (int, error) {
+	fmt.Printf("FunctionCallFill: %v\n", CurrentParamIndex)
 	// End Expression
 	EndExpression()
 
@@ -146,7 +147,7 @@ func FunctionCallFill() (int, error) {
 func VerifyParamFill() (int, error) {
 	// Size should match
 	if CurrentParamIndex < len(ProgramFunctions[CurrentFunctionCallName].Params.Order) || CurrentParamIndex > len(ProgramFunctions[CurrentFunctionCallName].Params.Order) {
-		return 0, fmt.Errorf("too many parameters for function %s", CurrentFunctionCallName)
+		return 0, fmt.Errorf("incorrect number of parameters for function %s", CurrentFunctionCallName)
 	}
 
 	// Generate GoSub quadruple
@@ -158,5 +159,6 @@ func VerifyParamFill() (int, error) {
 	}
 
 	QuadrupleList = append(QuadrupleList, quadruple)
+	CurrentParamIndex = 0
 	return 0, nil
 }

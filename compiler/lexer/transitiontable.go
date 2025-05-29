@@ -121,6 +121,8 @@ var TransTab = TransitionTable{
 			return 3
 		case 48 <= r && r <= 57: // ['0','9']
 			return 3
+		case r == 58: // [':',':']
+			return 3
 		case r == 63: // ['?','?']
 			return 3
 		case 65 <= r && r <= 90: // ['A','Z']

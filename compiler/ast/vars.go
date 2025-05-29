@@ -32,7 +32,7 @@ var syntaxCube = map[types.Type]map[types.Type]map[types.Operator]types.Type{
 			types.Add:         types.Int,
 			types.Sub:         types.Int,
 			types.Mul:         types.Int,
-			types.Div:         types.Int,
+			types.Div:         types.Float,
 			types.GreaterThan: types.Bool,
 			types.LessThan:    types.Bool,
 			types.NotEqual:    types.Bool,

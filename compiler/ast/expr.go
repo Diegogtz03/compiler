@@ -14,23 +14,23 @@ var OperandStack = utils.Stack{}      // int (indexes)
 
 var operatorHierarchy = map[types.Operator]int{
 	types.ErrorOperator: 0,
-	types.StackDivider:  4,
-	types.Assign:        4,
+	types.StackDivider:  5,
+	types.Assign:        5,
 	types.Add:           2,
 	types.Sub:           2,
 	types.Mul:           1,
 	types.Div:           1,
-	types.NotEqual:      2,
-	types.LessThan:      2,
-	types.GreaterThan:   2,
-	types.Print:         3,
-	types.Goto:          3,
-	types.GotoF:         3,
-	types.GotoT:         3,
+	types.NotEqual:      3,
+	types.LessThan:      3,
+	types.GreaterThan:   3,
+	types.Print:         4,
+	types.Goto:          4,
+	types.GotoF:         4,
+	types.GotoT:         4,
 
-	types.Era:       4,
-	types.Parameter: 3,
-	types.GoSub:     4,
+	types.Era:       5,
+	types.Parameter: 4,
+	types.GoSub:     5,
 }
 
 // Jump Stack
@@ -180,6 +180,13 @@ func getOperators(op types.Operator) (int, int, types.Type) {
 	var resultType types.Type = syntaxCube[op1Type][op2Type][op]
 
 	if resultType == types.Error {
+		fmt.Printf("op1: %v\n", op1)
+		fmt.Printf("op2: %v\n", op2)
+		fmt.Printf("op1Type: %v\n", op1Type)
+		fmt.Printf("op2Type: %v\n", op2Type)
+		fmt.Printf("op: %v\n", op)
+		fmt.Printf("resultType: %v\n", resultType)
+
 		panic("Error: Invalid operation")
 	}
 
@@ -197,8 +204,6 @@ func EndExpression() (*types.Operator, error) {
 
 func PopJumpStack(shouldSkipLine bool) (int, error) {
 	quadrupleIndex := JumpStack.Pop()
-	fmt.Printf("quadrupleIndex: %v\n", quadrupleIndex)
-	fmt.Printf("len(QuadrupleList): %v\n", len(QuadrupleList))
 
 	quadruple := QuadrupleList[quadrupleIndex]
 
@@ -222,8 +227,6 @@ func CyclePopJumpStack() (int, error) {
 	quadruple := QuadrupleList[quadrupleIndex]
 	quadruple.Result = len(QuadrupleList) + 1
 	QuadrupleList[quadrupleIndex] = quadruple
-
-	fmt.Printf("QuadrupleList: %v\n", QuadrupleList)
 
 	// Generate quadruple for Goto at end of cycle
 	quadruple = types.Quadruple{

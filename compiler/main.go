@@ -10,16 +10,12 @@ import (
 
 func main() {
 	src :=
-		`program demoSix;
+		`program fibonacci_functions;
 
-		var x : int;
-
-		main {
-			x = 3;
-			print("Hello, World!", "And Diego", x);
-		}
-
-		end`
+        main {
+            while
+        }
+        end`
 
 	l := lexer.NewLexer([]byte(src))
 	p := parser.NewParser()
