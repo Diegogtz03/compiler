@@ -156,11 +156,12 @@ func AddVarsToTable(varType types.Type) (*Variable, error) {
 		// Check if the variable already exists in the current module only and also in the global scope
 		if _, ok := ProgramFunctions[CurrentModule].Vars[id]; ok {
 			return nil, fmt.Errorf("Variable %s already exists in module %s", id, CurrentModule)
-		} else if CurrentModule != GlobalProgramName {
-			if _, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
-				return nil, fmt.Errorf("Variable %s already exists in module %s", id, CurrentModule)
-			}
 		}
+		// else if CurrentModule != GlobalProgramName {
+		// 	if _, ok := ProgramFunctions[GlobalProgramName].Vars[id]; ok {
+		// 		return nil, fmt.Errorf("Variable %s already exists in module %s", id, CurrentModule)
+		// 	}
+		// }
 
 		// Reserve space in "memory" for the variable
 		var index int = memory.AllocateMemory(varType, memoryType)
