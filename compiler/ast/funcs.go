@@ -117,7 +117,6 @@ func FunctionCallCreate(name interface{}) (int, error) {
 }
 
 func FunctionCallFill() (int, error) {
-	fmt.Printf("FunctionCallFill: %v\n", CurrentParamIndex)
 	// End Expression
 	EndExpression()
 

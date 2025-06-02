@@ -175,7 +175,6 @@ func AddVarsToTable(varType types.Type) (*Variable, error) {
 		ProgramFunctions[CurrentModule].Vars[id] = newVar
 
 		if IsParameter {
-			fmt.Println("Inserting parameter: " + id)
 			currentFunction := ProgramFunctions[CurrentModule]
 			currentFunction.Params.Order = append(currentFunction.Params.Order, varType)
 			currentFunction.Params.Signature = append(currentFunction.Params.Signature, index)
